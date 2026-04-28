@@ -3,115 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yum Yum Food</title>
+    <title>Yum Yum Food - Pro</title>
     <style>
-        :root { --primary: #FF9500; --success: #28a745; --gaze: #ffeb3b; }
+        :root { --primary: #FF9500; --success: #28a745; --gaze: #ffeb3b; --wrong: #ff4444; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
-        #bg-layer { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 1; filter: brightness(0.4) blur(2px); transition: background-image 0.5s; }
-        #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 120px; background: rgba(255,255,255,0.95); color: #000; display: flex; justify-content: center; align-items: center; font-size: 3.5rem; font-weight: bold; z-index: 100; border-bottom: 8px solid var(--primary); }
-        #target-container { position: absolute; display: none; z-index: 50; background: white; border-radius: 40px; border: 15px solid var(--primary); padding: 20px; box-shadow: 0 0 60px rgba(255,255,255,0.9); transition: transform 0.3s; }
-        #food-img { display: block; width: 100%; height: auto; border-radius: 20px; }
-        .progress-bar { position: absolute; bottom: -40px; left: 0; width: 0%; height: 25px; background: var(--gaze); border-radius: 12px; }
-        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 1001; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .big-btn { width: 85%; padding: 45px; margin: 25px; font-size: 3rem; border-radius: 30px; border: 8px solid #fff; cursor: pointer; color: white; font-weight: bold; }
+        
+        /* 頂部提示 */
+        #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 100px; background: white; color: #000; display: flex; justify-content: center; align-items: center; font-size: 3rem; font-weight: bold; z-index: 100; border-bottom: 8px solid var(--primary); }
+
+        /* 遊戲區域 */
+        #game-stage { position: absolute; inset: 100px 0 0 0; z-index: 50; }
+
+        /* 食物方塊 */
+        .food-card { position: absolute; background: white; border-radius: 30px; border: 12px solid var(--primary); padding: 15px; cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column; align-items: center; }
+        .food-card img { width: 100%; height: auto; border-radius: 15px; }
+        .food-card.wrong { border-color: #333; opacity: 0.7; }
+        .food-card.empty { background: #eee; border-style: dashed; }
+
+        /* 注視進度條 */
+        .progress-bar { position: absolute; bottom: -25px; left: 0; width: 0%; height: 15px; background: var(--gaze); border-radius: 10px; }
+
+        /* 設定頁面 */
+        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 1001; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .setting-section { width: 90%; background: white; padding: 15px; margin: 10px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h3 { margin: 5px 0; color: #d35400; }
+        .opt-btn { padding: 15px 25px; margin: 5px; border: 3px solid #ddd; border-radius: 15px; background: #fff; font-size: 1.2rem; cursor: pointer; }
+        .opt-btn.active { background: var(--primary); color: white; border-color: #fff; }
+        .start-btn { width: 90%; padding: 25px; background: var(--success); color: white; border: none; border-radius: 30px; font-size: 2.5rem; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
+
     <audio id="cheer-sound" src="cheer.mp3"></audio>
-    <div id="task-hint">找出：<span id="target-name">---</span></div>
-    <div id="bg-layer"></div>
-    <div id="target-container">
-        <img id="food-img" src="">
-        <div class="progress-bar" id="gaze-bar"></div>
-    </div>
+    <div id="task-hint">請找出：<span id="target-name">---</span></div>
+    <div id="game-stage"></div>
+
     <div id="settings-panel">
-        <button class="big-btn" style="background: #d35400;" onclick="startGame('chinese')">🍱 中式點心</button>
-        <button class="big-btn" style="background: #2980b9;" onclick="startGame('western')">🍔 西式快餐</button>
+        <h1>⚙️ 遊戲設定</h1>
+        
+        <div class="setting-section">
+            <h3>1. 選擇等級 (Level)</h3>
+            <button class="opt-btn active" onclick="setLv(1, this)">Lv.1 單一目標</button>
+            <button class="opt-btn" onclick="setLv(2, this)">Lv.2 二選一 (空白)</button>
+            <button class="opt-btn" onclick="setLv(3, this)">Lv.3 二選一 (隨機圖)</button>
+            <button class="opt-btn" onclick="setLv(4, this)">Lv.4 二選一 (中vs西)</button>
+        </div>
+
+        <div class="setting-section">
+            <h3>2. 注視時間 (秒)</h3>
+            <button class="opt-btn" onclick="setTime(300, this)">0.3s</button>
+            <button class="opt-btn" onclick="setTime(800, this)">0.8s</button>
+            <button class="opt-btn active" onclick="setTime(1500, this)">1.5s</button>
+            <button class="opt-btn" onclick="setTime(2000, this)">2.0s</button>
+        </div>
+
+        <div class="setting-section">
+            <h3>3. 食物種類</h3>
+            <button class="opt-btn active" onclick="setType('chinese', this)">中式食物</button>
+            <button class="opt-btn" onclick="setType('western', this)">西式食物</button>
+        </div>
+
+        <button class="start-btn" onclick="begin()">開始練習</button>
     </div>
 
     <script>
-        const config = {
-            'chinese': {
-                bg: 'chinese_bg.jpg', 
-                data: [
-                    { name: '牛肉球', img: 'food1.png' },
-                    { name: '腸粉', img: 'food2.png' },
-                    { name: '叉燒包', img: 'food3.png' },
-                    { name: '白粥', img: 'food4.png' }
-                ]
-            },
-            'western': {
-                bg: 'western_bg.jpg', 
-                data: [
-                    { name: '薄餅', img: 'pizza.png' },
-                    { name: '漢堡包', img: '1food.png' },
-                    { name: '薯條', img: '2food.png' },
-                    { name: '可樂', img: 'cola.png' }
-                ]
-            }
+        const foodLib = {
+            chinese: [
+                { name: '牛肉球', img: 'food1.jpg' }, { name: '腸粉', img: 'food2.jpg' },
+                { name: '叉燒包', img: 'food3.jpg' }, { name: '白粥', img: 'food4.jpg' }
+            ],
+            western: [
+                { name: '薄餅', img: 'pizza.jpg' }, { name: '漢堡包', img: '1food.jpg' },
+                { name: '薯條', img: '2food.jpg' }, { name: '可樂', img: 'cola.jpg' }
+            ]
         };
 
-        let currentList = [];
-        let currentIndex = 0;
-        let gazeTimer = null;
+        let cfg = { lv: 1, time: 1500, type: 'chinese' };
+        let currentIdx = 0, currentFoods = [], gazeTimer = null;
 
-        function startGame(type) {
+        function setLv(v, b) { cfg.lv = v; updateUI(b); }
+        function setTime(v, b) { cfg.time = v; updateUI(b); }
+        function setType(v, b) { cfg.type = v; updateUI(b); }
+        function updateUI(btn) {
+            Array.from(btn.parentNode.querySelectorAll('.opt-btn')).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // 語音功能
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-HK';
+            window.speechSynthesis.speak(msg);
+        }
+
+        function begin() {
             document.getElementById('settings-panel').style.display = 'none';
-            document.getElementById('bg-layer').style.backgroundImage = `url(${config[type].bg})`;
-            currentList = [...config[type].data].sort(() => Math.random() - 0.5);
-            currentIndex = 0;
+            currentFoods = [...foodLib[cfg.type]].sort(() => Math.random() - 0.5);
+            currentIdx = 0;
             spawn();
         }
 
         function spawn() {
-            if (currentIndex >= currentList.length) {
-                setTimeout(() => { document.getElementById('settings-panel').style.display = 'flex'; }, 1000);
+            if (currentIdx >= currentFoods.length) {
+                document.getElementById('settings-panel').style.display = 'flex';
                 return;
             }
-            const item = currentList[currentIndex];
-            document.getElementById('target-name').innerText = item.name;
-            const img = document.getElementById('food-img');
-            const container = document.getElementById('target-container');
-            const bar = document.getElementById('gaze-bar');
-            
-            img.src = item.img;
-            container.style.display = 'none';
-            bar.style.width = '0%';
-            bar.style.transition = 'none';
 
-            img.onload = () => {
-                const size = 400;
-                container.style.width = size + 'px';
-                const maxX = window.innerWidth - size - 60;
-                const maxY = window.innerHeight - size - 180;
-                container.style.left = (Math.random() * maxX + 30) + 'px';
-                container.style.top = (Math.random() * maxY + 140) + 'px';
-                container.style.display = 'block';
-            };
+            const target = currentFoods[currentIdx];
+            document.getElementById('target-name').innerText = target.name;
+            speak("請找出" + target.name);
+
+            const stage = document.getElementById('game-stage');
+            stage.innerHTML = '';
+            
+            // 生成正確目標
+            createCard(target, true);
+
+            // 根據等級生成干擾項
+            if (cfg.lv === 2) createCard({name:'空白', img:''}, false, 'empty');
+            if (cfg.lv === 3) createCard({name:'星星', img:'https://cdn-icons-png.flaticon.com/128/1828/1828884.png'}, false);
+            if (cfg.lv === 4) {
+                const otherType = cfg.type === 'chinese' ? 'western' : 'chinese';
+                const distractor = foodLib[otherType][Math.floor(Math.random()*4)];
+                createCard(distractor, false);
+            }
         }
 
-        const cont = document.getElementById('target-container');
-        cont.onpointerenter = () => {
-            const bar = document.getElementById('gaze-bar');
-            bar.style.transition = "width 1500ms linear";
-            bar.style.width = "100%";
-            gazeTimer = setTimeout(() => {
-                document.getElementById('cheer-sound').play();
-                cont.style.transform = "scale(1.2)";
-                setTimeout(() => {
-                    cont.style.transform = "scale(1)";
-                    currentIndex++;
-                    spawn();
-                }, 1000);
-            }, 1500);
-        };
-        cont.onpointerleave = () => {
-            clearTimeout(gazeTimer);
-            const bar = document.getElementById('gaze-bar');
-            bar.style.transition = "none";
-            bar.style.width = "0%";
-        };
+        function createCard(data, isCorrect, specialClass = '') {
+            const card = document.createElement('div');
+            card.className = `food-card ${specialClass}`;
+            card.innerHTML = data.img ? `<img src="${data.img}"><div class="progress-bar"></div>` : `<div style="height:200px"></div>`;
+            card.style.width = '320px';
+            
+            const maxX = window.innerWidth - 350;
+            const maxY = window.innerHeight - 450;
+            card.style.left = Math.random() * maxX + 'px';
+            card.style.top = Math.random() * maxY + 'px';
+
+            card.onpointerenter = () => {
+                if (!isCorrect) {
+                    speak("唔係呢個");
+                    card.classList.add('wrong');
+                    return;
+                }
+                const bar = card.querySelector('.progress-bar');
+                bar.style.transition = `width ${cfg.time}ms linear`;
+                bar.style.width = '100%';
+                gazeTimer = setTimeout(() => {
+                    speak(data.name + "，好叻喎！");
+                    document.getElementById('cheer-sound').play();
+                    card.style.transform = "scale(1.2)";
+                    setTimeout(() => { currentIdx++; spawn(); }, 1200);
+                }, cfg.time);
+            };
+
+            card.onpointerleave = () => {
+                clearTimeout(gazeTimer);
+                const bar = card.querySelector('.progress-bar');
+                if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
+            };
+
+            document.getElementById('game-stage').appendChild(card);
+        }
     </script>
 </body>
 </html>
