@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yum Yum Food - V5 Ultimate</title>
+    <title>Yum Yum Food - V6 Stable</title>
     <style>
         :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
@@ -15,37 +15,28 @@
         #home-btn { position: absolute; top: 15px; right: 15px; z-index: 200; background: var(--home); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-size: 1.2rem; cursor: pointer; display: none; }
         
         /* 遊戲舞台：強化左右分隔 */
-        #game-stage { 
-            position: absolute; inset: 100px 0 0 0; 
-            display: flex; justify-content: space-around; align-items: center; 
-            padding: 0 5%; z-index: 50; transition: background 0.5s; 
-            gap: 100px; 
-        }
+        #game-stage { position: absolute; inset: 100px 0 0 0; display: flex; justify-content: center; align-items: center; padding: 0 5%; z-index: 50; transition: background 0.5s; gap: 120px; }
 
-        /* 原始圖片卡片：加大尺寸 */
+        /* 卡片巨大化 */
         .food-card { 
             position: relative; background: white; border-radius: 30px; border: 10px solid var(--primary); 
-            padding: 15px; cursor: pointer; 
-            width: 42vw; height: 40vh; /* 加大尺寸 */
-            max-width: 480px; max-height: 380px; 
+            padding: 15px; cursor: pointer; width: 42vw; height: 40vh; max-width: 480px; max-height: 380px; 
             transition: all 0.4s ease; display: flex; justify-content: center; align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         .food-card img { width: 95%; height: 95%; object-fit: contain; pointer-events: none; }
 
-        /* [修正] 答對後橫向比例放大置中 */
+        /* [修正] 橫向比例置中放大，防止超出螢幕 */
         .focus-center { 
             position: fixed !important; top: 55% !important; left: 50% !important; 
-            transform: translate(-50%, -50%); 
-            z-index: 1000; border-color: var(--success); 
-            width: 80vw; height: 60vh; 
-            max-width: 900px; max-height: 550px;
+            transform: translate(-50%, -50%) !important; z-index: 1000; border-color: var(--success); 
+            width: 85vw; height: 60vh; max-width: 900px; max-height: 500px;
             box-shadow: 0 0 100px rgba(255,255,255,0.7);
         }
         .dimmed { background: rgba(0,0,0,0.92) !important; }
 
-        /* 配對模式專用樣式：讓圖片更大 */
-        .match-card { width: 45vw; height: 50vh; max-width: 550px; max-height: 450px; }
+        /* 配對模式專用：更巨大的卡片 */
+        .match-card { width: 45vw; height: 55vh; max-width: 550px; max-height: 450px; }
         .match-target { border: 8px dashed #666; background: rgba(255,255,255,0.1); }
 
         .progress-bar { position: absolute; bottom: -20px; left: 0; width: 0%; height: 15px; background: #ffeb3b; border-radius: 8px; }
@@ -77,14 +68,14 @@
         <h1 style="margin: 10px;">教育遊戲設定 ⚙️</h1>
         <div class="setting-section">
             <h3>1. 選擇等級與學習目標</h3>
-            <div class="lv-item active" onclick="setLv(1, this)"><button class="lv-btn">等級 1</button><h4>單一選項</h4><p>視覺聚焦練習</p></div>
-            <div class="lv-item" onclick="setLv(2, this)"><button class="lv-btn">等級 2</button><h4>二選一 (空白)</h4><p>簡單視覺辨識</p></div>
-            <div class="lv-item" onclick="setLv(3, this)"><button class="lv-btn">等級 3</button><h4>二選一 (圖案)</h4><p>分辨食物與雜物</p></div>
-            <div class="lv-item" onclick="setLv(5, this)"><button class="lv-btn">等級 5</button><h4>三選一 (混合)</h4><p>複雜背景搜尋</p></div>
-            <div class="lv-item" onclick="setLv(6, this)" style="background:#f0f7ff; border-radius: 10px;"><button class="lv-btn">等級 6</button><h4>配對模式 (拖放)</h4><p>手眼協調練習</p></div>
+            <div class="lv-item active" onclick="setLv(1, this)"><button class="lv-btn">等級 1</button><h4>單一選項</h4><p>目標：視覺聚焦</p></div>
+            <div class="lv-item" onclick="setLv(2, this)"><button class="lv-btn">等級 2</button><h4>二選一 (空白)</h4><p>目標：簡單辨識</p></div>
+            <div class="lv-item" onclick="setLv(3, this)"><button class="lv-btn">等級 3</button><h4>二選一 (星形)</h4><p>目標：分辨形狀</p></div>
+            <div class="lv-item" onclick="setLv(5, this)"><button class="lv-btn">等級 5</button><h4>三選一 (混合)</h4><p>目標：複雜辨識</p></div>
+            <div class="lv-item" onclick="setLv(6, this)" style="background:#f0f7ff; border-radius: 10px;"><button class="lv-btn">等級 6</button><h4>配對模式 (拖放)</h4><p>目標：手眼協調</p></div>
         </div>
         <div class="setting-section" style="text-align: center;">
-            <h3>2. 注視觸發時間：<span id="time-val">1.0</span> 秒</h3>
+            <h3>2. 注視時間：<span id="time-val">1.0</span> 秒</h3>
             <input type="range" id="time-slider" min="0.3" max="2.5" step="0.1" value="1.0" oninput="updateTime(this.value)" style="width:80%;">
         </div>
         <div class="setting-section" style="text-align: center;">
@@ -126,11 +117,14 @@
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-HK';
-            msg.rate = 0.85;
+            msg.rate = 0.8;
             window.speechSynthesis.speak(msg);
         }
 
-        function speakTask() { speak((cfg.lv === 6 ? "請配對" : "請找出") + lastTarget); }
+        function speakTask() { 
+            const prefix = (cfg.lv === 6) ? "請配對" : "請找出";
+            speak(prefix + lastTarget); 
+        }
 
         function goHome() {
             clearTimeout(gazeTimer);
@@ -138,6 +132,7 @@
             document.getElementById('home-btn').style.display = 'none';
             document.getElementById('game-stage').innerHTML = '';
             document.getElementById('game-stage').classList.remove('dimmed');
+            isTransitioning = false;
         }
 
         function begin() {
@@ -149,7 +144,7 @@
         }
 
         function spawn() {
-            if (currentIdx >= currentFoods.length) { speak("你好叻喎，練習完喇！"); setTimeout(goHome, 2500); return; }
+            if (currentIdx >= currentFoods.length) { speak("練習完成，你好叻喎！"); setTimeout(goHome, 2000); return; }
             isTransitioning = false;
             const stage = document.getElementById('game-stage');
             stage.classList.remove('dimmed');
@@ -200,8 +195,7 @@
                         document.getElementById('game-stage').classList.add('dimmed');
                         card.classList.add('focus-center'); 
                         speak(data.name + "，好叻喎！");
-                        // 答對後停留 3 秒
-                        setTimeout(() => { currentIdx++; spawn(); }, 3000);
+                        setTimeout(() => { currentIdx++; spawn(); }, 3000); // 答對停留 3 秒
                     }, cfg.time);
                 }
             };
@@ -214,11 +208,11 @@
 
         function initMatchMode(target) {
             const stage = document.getElementById('game-stage');
-            stage.style.gap = "120px";
+            stage.style.gap = "100px";
 
             const targetBox = document.createElement('div');
             targetBox.className = 'food-card match-card match-target';
-            targetBox.innerHTML = `<img src="${target.img}" style="opacity:0.15">`;
+            targetBox.innerHTML = `<img src="${target.img}" style="opacity:0.2">`;
             
             const dragCard = document.createElement('div');
             dragCard.className = 'food-card match-card';
@@ -253,11 +247,9 @@
                     isTransitioning = true;
                     dragCard.style.left = boxRect.left + 'px';
                     dragCard.style.top = boxRect.top + 'px';
-                    dragCard.style.borderColor = var(--success);
                     document.getElementById('cheer-sound').play();
                     speak("配對成功，好叻喎！");
-                    // 配對完成後停留 3 秒
-                    setTimeout(() => { currentIdx++; spawn(); }, 3000);
+                    setTimeout(() => { currentIdx++; spawn(); }, 3000); // 配對成功停留 3 秒
                 } else {
                     dragCard.style.position = 'relative';
                     dragCard.style.left = '0'; dragCard.style.top = '0';
