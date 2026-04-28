@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yum Yum Food - Fixed</title>
+    <title>Yum Yum Food - elite-V3</title>
     <style>
         :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
@@ -11,51 +11,61 @@
         
         /* 頂部控制欄 */
         #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 100px; background: white; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; z-index: 100; border-bottom: 5px solid var(--primary); gap: 15px; }
-        .replay-btn { background: #eee; border: 3px solid #ccc; border-radius: 50%; width: 50px; height: 50px; font-size: 1.2rem; cursor: pointer; }
+        .replay-btn { background: #eee; border: 3px solid #ccc; border-radius: 50%; width: 50px; height: 50px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         #home-btn { position: absolute; top: 15px; right: 15px; z-index: 200; background: var(--home); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-size: 1.2rem; cursor: pointer; display: none; }
         
-        /* 使用彈性佈局確保圖片不重疊 */
-        #game-stage { 
-            position: absolute; inset: 100px 0 0 0; 
-            display: flex; justify-content: center; align-items: center; 
-            padding: 20px; z-index: 50; transition: background 0.5s; 
-            gap: 20px; /* 圖片之間的固定間距 */
-        }
+        /* 遊戲區域：使用彈性佈局確保圖片排開 */
+        #game-stage { position: absolute; inset: 100px 0 0 0; display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 50; transition: background 0.5s; gap: 30px; }
 
-        /* 卡片自適應大小 */
+        /* 卡片樣式 */
         .food-card { 
             position: relative; background: white; border-radius: 25px; border: 8px solid var(--primary); 
-            padding: 10px; cursor: pointer; 
-            width: 30%; max-width: 320px; height: 240px; 
-            transition: all 0.5s ease; display: flex; justify-content: center; align-items: center;
+            padding: 15px; cursor: pointer; width: 30%; max-width: 320px; height: 260px; 
+            transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            display: flex; justify-content: center; align-items: center;
         }
         .food-card img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 
-        /* 選中置中放大效果 */
+        /* 選中置中放大：縮小尺寸並優化位置 */
         .focus-center { 
             position: fixed !important; top: 50% !important; left: 50% !important; 
-            transform: translate(-50%, -50%) scale(1.6); 
+            transform: translate(-50%, -50%) scale(1.4); /* 從 1.6 縮小至 1.4，防止超出螢幕 */
             z-index: 1000; border-color: var(--success); 
-            width: 450px; height: 350px; 
+            box-shadow: 0 0 50px rgba(255,255,255,0.4);
+            width: 450px; height: 350px; /* 固定放大尺寸，防止比例跑掉 */
         }
         .dimmed { background: rgba(0,0,0,0.85) !important; }
 
-        /* 滑桿控制面板 */
-        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 1001; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
-        .setting-section { width: 90%; background: white; padding: 15px; margin: 10px; border-radius: 15px; text-align: center; }
-        #time-slider { width: 80%; height: 30px; margin: 15px 0; }
-        .opt-btn { padding: 12px 18px; margin: 5px; border: 2px solid #ddd; border-radius: 10px; background: #fff; font-size: 1.1rem; cursor: pointer; }
-        .opt-btn.active { background: var(--primary); color: white; }
+        /* 配對模式樣式：圖片加大，優化觸控體驗 */
+        .match-target { border: 5px dashed #666; background: rgba(255,255,255,0.1); color: white; justify-content: center; }
+        .match-target img { opacity: 0.2; }
+        
+        .draggable { width: 320px; height: 260px; /* 加大配對圖片 */ cursor: grab; }
+        .draggable:active { cursor: grabbing; border-color: var(--home); }
 
-        /* 配對模式 */
-        .match-target { border: 5px dashed #666; background: rgba(255,255,255,0.1); color: white; }
-        .progress-bar { position: absolute; bottom: -15px; left: 0; width: 0%; height: 10px; background: #ffeb3b; border-radius: 5px; }
+        .progress-bar { position: absolute; bottom: -18px; left: 0; width: 0%; height: 10px; background: #ffeb3b; border-radius: 5px; }
+
+        /* 設定面板 */
+        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 1001; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .setting-section { width: 95%; max-width: 800px; background: white; padding: 15px; margin: 10px 0; border-radius: 15px; }
+        
+        /* 等級描述樣式 */
+        .lv-item { display: flex; align-items: center; width: 100%; border-bottom: 1px solid #eee; padding: 5px 0; cursor: pointer; }
+        .lv-item h4 { margin: 0 10px; color: #d35400; flex-grow: 1; font-size: 1.1rem; }
+        .lv-item p { margin: 0; color: #666; font-size: 0.9rem; max-width: 50%; }
+        .lv-btn { padding: 10px 18px; border: 2px solid #ddd; border-radius: 10px; background: #fff; font-size: 1rem; cursor: pointer; }
+        .lv-item.active .lv-btn { background: var(--primary); color: white; }
+
+        #time-slider { width: 70%; height: 30px; margin: 10px; }
+        .opt-btn { padding: 12px 18px; margin: 5px; border: 2px solid #ddd; border-radius: 10px; background: #fff; font-size: 1rem; cursor: pointer; }
+        .opt-btn.active { background: var(--primary); color: white; }
+        .start-btn { width: 90%; max-width: 400px; padding: 20px; background: var(--success); color: white; border: none; border-radius: 30px; font-size: 2rem; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <audio id="cheer-sound" src="cheer.mp3"></audio>
-    <button id="home-btn" onclick="goHome()">🏠 返回設定</button>
+    <button id="home-btn" onclick="goHome()">🏠 返回</button>
     <div id="task-hint">
         <span id="instruction">找出：</span><span id="target-name">---</span>
         <button class="replay-btn" onclick="speakTask()">🔊</button>
@@ -63,28 +73,56 @@
     <div id="game-stage"></div>
 
     <div id="settings-panel">
-        <h1>Yum Yum Food 🍔</h1>
+        <h1 style="margin: 10px;">Yum Yum 設定 ⚙️</h1>
+        
         <div class="setting-section">
-            <h3>選擇等級</h3>
-            <button class="opt-btn active" onclick="setLv(1, this)">Lv.1</button>
-            <button class="opt-btn" onclick="setLv(3, this)">Lv.3</button>
-            <button class="opt-btn" onclick="setLv(5, this)">Lv.5 (三選一)</button>
-            <button class="opt-btn" onclick="setLv(6, this)" style="border-color:var(--home)">新功能：配對</button>
+            <h3>1. 等級描述與目標</h3>
+            
+            <div class="lv-item active" onclick="setLv(1, this)">
+                <button class="lv-btn">Lv.1</button>
+                <h4>單一選項</h4>
+                <p>目標：視覺集中、認識單一食物</p>
+            </div>
+            
+            <div class="lv-item" onclick="setLv(2, this)">
+                <button class="lv-btn">Lv.2</button>
+                <h4>二選一 (空白干扰)</h4>
+                <p>目標：簡單視覺辨識</p>
+            </div>
+            
+            <div class="lv-item" onclick="setLv(3, this)">
+                <button class="lv-btn">Lv.3</button>
+                <h4>二選一 (圖案干扰)</h4>
+                <p>目標：區分食物與非食物</p>
+            </div>
+            
+            <div class="lv-item" onclick="setLv(5, this)">
+                <button class="lv-btn">Lv.5</button>
+                <h4>三選一 (中西混合)</h4>
+                <p>目標：複雜背景搜尋</p>
+            </div>
+            
+            <div class="lv-item" onclick="setLv(6, this)" style="background:#e8f4ff; padding:5px; border-radius:10px;">
+                <button class="lv-btn">Lv.6</button>
+                <h4>配對模式</h4>
+                <p>目標：找出相同食物 (拉拽)</p>
+            </div>
         </div>
+
         <div class="setting-section">
-            <h3>注視觸發時間：<span id="time-val">1.0</span>s</h3>
+            <h3>2. 注視時間：<span id="time-val">1.0</span> 秒</h3>
             <input type="range" id="time-slider" min="0.3" max="2.5" step="0.1" value="1.0" oninput="updateTime(this.value)">
         </div>
         <div class="setting-section">
-            <h3>食物種類</h3>
+            <h3>3. 食物類型</h3>
             <button class="opt-btn active" onclick="setType('chinese', this)">中式</button>
             <button class="opt-btn" onclick="setType('western', this)">西式</button>
         </div>
-        <button style="width:90%; padding:20px; background:var(--success); color:white; border:none; border-radius:30px; font-size:1.8rem;" onclick="begin()">開始</button>
+        <button class="start-btn" onclick="begin()">開始</button>
     </div>
 
     <script>
-        // 修正副檔名為 .png
+        // 完全對應你 GitHub 檔案名稱為 .png
         const foodLib = {
             chinese: [
                 { name: '牛肉球', img: 'food1.png' }, { name: '腸粉', img: 'food2.png' },
@@ -99,27 +137,35 @@
         let cfg = { lv: 1, time: 1000, type: 'chinese' };
         let currentIdx = 0, currentFoods = [], gazeTimer = null, isTransitioning = false, lastTarget = "";
 
-        function setLv(v, b) { cfg.lv = v; updateUI(b); }
+        function setLv(v, b) { cfg.lv = v; updateUI_LV(b); }
         function updateTime(v) { cfg.time = v * 1000; document.getElementById('time-val').innerText = v; }
         function setType(v, b) { cfg.type = v; updateUI(b); }
+        
         function updateUI(btn) {
             Array.from(btn.parentNode.querySelectorAll('.opt-btn')).forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
+        function updateUI_LV(item) {
+            Array.from(document.querySelectorAll('.lv-item')).forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+        }
 
-        function speakTask() {
+        function speak(text) {
             window.speechSynthesis.cancel();
-            const text = (cfg.lv === 6 ? "請將圖片拉到這裡" : "請找出") + lastTarget;
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-HK';
             window.speechSynthesis.speak(msg);
         }
+
+        function speakTask() { speak((cfg.lv === 6 ? "請將圖片拉到這裡" : "請找出") + lastTarget); }
 
         function goHome() {
             clearTimeout(gazeTimer);
             document.getElementById('settings-panel').style.display = 'flex';
             document.getElementById('home-btn').style.display = 'none';
             document.getElementById('game-stage').innerHTML = '';
+            document.getElementById('game-stage').classList.remove('dimmed');
+            isTransitioning = false;
         }
 
         function begin() {
@@ -140,16 +186,19 @@
             const target = currentFoods[currentIdx];
             lastTarget = target.name;
             document.getElementById('target-name').innerText = target.name;
+            document.getElementById('instruction').innerText = (cfg.lv === 6 ? "配對：" : "找出：");
             speakTask();
 
             if (cfg.lv === 6) {
                 initMatchMode(target);
             } else {
+                // 確保 Level 2 (空白干扰) 生成邏輯
                 let items = [target];
-                if (cfg.lv >= 3) items.push({name:'star', img:'star'});
-                if (cfg.lv >= 5) {
+                if (cfg.lv === 2) items.push({name:'?', img:''}); // 空白格干扰
+                if (cfg.lv === 3) items.push({name:'*', img:'star'}); // 星星干扰
+                if (cfg.lv === 5) {
                     const others = cfg.type === 'chinese' ? foodLib.western : foodLib.chinese;
-                    items.push(others[0]);
+                    items.push(others[0]); items.push(others[1]); // 三選一
                 }
                 items.sort(() => Math.random() - 0.5).forEach(data => createCard(data, data === target));
             }
@@ -158,7 +207,10 @@
         function createCard(data, isCorrect) {
             const card = document.createElement('div');
             card.className = 'food-card';
-            if (data.img === 'star') {
+            if (data.name === '?') {
+                card.innerHTML = '<div style="font-size:5rem; color:#ccc">?</div>';
+                card.style.borderStyle = 'dashed';
+            } else if (data.img === 'star') {
                 card.innerHTML = '<div style="font-size:5rem; color:#f1c40f">★</div>';
             } else {
                 card.innerHTML = `<img src="${data.img}"><div class="progress-bar"></div>`;
@@ -167,15 +219,17 @@
             card.onpointerenter = () => {
                 if (isTransitioning || !isCorrect) return;
                 const bar = card.querySelector('.progress-bar');
-                bar.style.transition = `width ${cfg.time}ms linear`;
-                bar.style.width = '100%';
-                gazeTimer = setTimeout(() => {
-                    isTransitioning = true;
-                    document.getElementById('cheer-sound').play();
-                    document.getElementById('game-stage').classList.add('dimmed');
-                    card.classList.add('focus-center'); // 強化記憶效果
-                    setTimeout(() => { currentIdx++; spawn(); }, 3000);
-                }, cfg.time);
+                if (bar) {
+                    bar.style.transition = `width ${cfg.time}ms linear`;
+                    bar.style.width = '100%';
+                    gazeTimer = setTimeout(() => {
+                        isTransitioning = true;
+                        document.getElementById('cheer-sound').play();
+                        document.getElementById('game-stage').classList.add('dimmed');
+                        card.classList.add('focus-center'); // 強化記憶效果，使用修正後的尺寸
+                        setTimeout(() => { currentIdx++; spawn(); }, 3000);
+                    }, cfg.time);
+                }
             };
             card.onpointerleave = () => {
                 clearTimeout(gazeTimer);
@@ -184,41 +238,67 @@
             document.getElementById('game-stage').appendChild(card);
         }
 
+        // --- LEVEL 6 配對模式：加大圖片，優化流暢度 ---
         function initMatchMode(target) {
             const stage = document.getElementById('game-stage');
+            stage.style.gap = '80px'; // 加大間距
+            
+            // 左邊：目標區域
             const targetBox = document.createElement('div');
             targetBox.className = 'food-card match-target';
-            targetBox.innerHTML = `<img src="${target.img}" style="opacity:0.2">`;
+            targetBox.innerHTML = `<img src="${target.img}">`;
             
+            // 右邊：可拖動卡片 (尺寸加大)
             const dragCard = document.createElement('div');
-            dragCard.className = 'food-card';
-            dragCard.style.cursor = 'grab';
+            dragCard.className = 'food-card draggable';
             dragCard.innerHTML = `<img src="${target.img}">`;
             
             stage.appendChild(targetBox);
             stage.appendChild(dragCard);
 
+            // 優化拖拽邏輯，使用 PointerEvents 提高不流暢度
             let isDragging = false;
+            let startCoord = { x: 0, y: 0 };
+
             dragCard.onpointerdown = (e) => {
+                if (isTransitioning) return;
                 isDragging = true;
                 dragCard.setPointerCapture(e.pointerId);
+                const rect = dragCard.getBoundingClientRect();
+                startCoord.x = e.clientX - rect.left;
+                startCoord.y = e.clientY - rect.top;
+                dragCard.style.transition = 'none'; // 拖動時關閉動畫
                 dragCard.style.position = 'fixed';
                 dragCard.style.zIndex = '1000';
             };
+
             dragCard.onpointermove = (e) => {
                 if (!isDragging) return;
-                dragCard.style.left = (e.clientX - 160) + 'px';
-                dragCard.style.top = (e.clientY - 120) + 'px';
+                dragCard.style.left = (e.clientX - startCoord.x) + 'px';
+                dragCard.style.top = (e.clientY - startCoord.y) + 'px';
             };
+
             dragCard.onpointerup = (e) => {
                 isDragging = false;
+                dragCard.style.transition = 'all 0.3s'; // 放開後恢復動畫
+
                 const boxRect = targetBox.getBoundingClientRect();
+                // 判斷是否拉進目標框內
                 if (e.clientX > boxRect.left && e.clientX < boxRect.right) {
+                    isTransitioning = true;
+                    // 平滑移動到目標位置
+                    dragCard.style.left = boxRect.left + 'px';
+                    dragCard.style.top = boxRect.top + 'px';
+                    
                     document.getElementById('cheer-sound').play();
-                    currentIdx++; setTimeout(spawn, 2000);
+                    speak("配對成功！" + target.name);
+                    setTimeout(() => { currentIdx++; spawn(); }, 3000);
                 } else {
+                    // 放開後平滑回到原位
                     dragCard.style.position = 'relative';
                     dragCard.style.left = '0'; dragCard.style.top = '0';
+                    dragCard.style.zIndex = '10';
+                    speak("放進去框框裡面喔");
                 }
             };
         }
