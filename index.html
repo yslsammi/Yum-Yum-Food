@@ -3,29 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yum Yum Food - Final</title>
+    <title>Yum Yum Food - Pro</title>
     <style>
         :root { --primary: #FF9500; --success: #28a745; --gaze: #ffeb3b; --home: #007AFF; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
         
+        /* 頂部欄位 */
         #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 120px; background: white; color: #000; display: flex; justify-content: center; align-items: center; font-size: 3.5rem; font-weight: bold; z-index: 100; border-bottom: 8px solid var(--primary); }
         #home-btn { position: absolute; top: 20px; right: 20px; z-index: 200; background: var(--home); color: white; border: 4px solid white; border-radius: 15px; padding: 15px 25px; font-size: 1.5rem; font-weight: bold; cursor: pointer; display: none; }
+        
         #game-stage { position: absolute; inset: 120px 0 0 0; z-index: 50; }
 
-        .food-card { position: absolute; background: white; border-radius: 35px; border: 15px solid var(--primary); padding: 20px; cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .food-card img { width: 100%; height: auto; border-radius: 20px; display: block; }
-        .food-card.wrong { border-color: #333; opacity: 0.5; }
-        .food-card.empty { background: #ccc; border: 15px dashed #666; justify-content: center; height: 350px; }
-        .food-card.empty::after { content: '?'; font-size: 5rem; color: #666; font-weight: bold; }
+        /* 統一所有卡片大小 */
+        .food-card { 
+            position: absolute; 
+            background: white; 
+            border-radius: 35px; 
+            border: 12px solid var(--primary); 
+            padding: 15px; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            /* 固定寬高確保一致 */
+            width: 400px; 
+            height: 320px; 
+        }
 
-        .progress-bar { position: absolute; bottom: -30px; left: 10px; right: 10px; width: 0%; height: 20px; background: var(--gaze); border-radius: 10px; }
+        /* 圖片縮放邏輯：統一填滿但不變形 */
+        .food-card img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+            border-radius: 15px; 
+        }
 
-        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 1001; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .setting-section { width: 90%; background: white; padding: 20px; margin: 15px; border-radius: 25px; }
-        .opt-btn { padding: 18px 30px; margin: 8px; border: 4px solid #ddd; border-radius: 20px; background: #fff; font-size: 1.4rem; cursor: pointer; font-weight: bold; }
+        .food-card.wrong { border-color: #333 !important; opacity: 0.6; }
+        
+        /* 星星或空白格的內部樣式 */
+        .special-icon { font-size: 10rem; color: #666; }
+        .food-card.correct-feedback { border-color: var(--success); transform: scale(1.1); transition: all 0.3s; }
+
+        .progress-bar { position: absolute; bottom: -25px; left: 0; width: 0%; height: 15px; background: var(--gaze); border-radius: 10px; }
+
+        /* 設定介面 */
+        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 1001; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+        .setting-section { width: 90%; background: white; padding: 20px; margin: 10px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .opt-btn { padding: 15px 25px; margin: 5px; border: 3px solid #ddd; border-radius: 15px; background: #fff; font-size: 1.2rem; cursor: pointer; font-weight: bold; }
         .opt-btn.active { background: var(--primary); color: white; border-color: #fff; }
-        .start-btn { width: 90%; padding: 30px; background: var(--success); color: white; border: none; border-radius: 40px; font-size: 3rem; font-weight: bold; margin: 30px 0; }
+        .start-btn { width: 90%; padding: 25px; background: var(--success); color: white; border: none; border-radius: 40px; font-size: 2.5rem; font-weight: bold; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -36,30 +64,30 @@
     <div id="game-stage"></div>
 
     <div id="settings-panel">
-        <h1 style="font-size: 3rem;">Yum Yum Food ⚙️</h1>
+        <h1 style="font-size: 3rem; margin-bottom: 10px;">Yum Yum Food ⚙️</h1>
         <div class="setting-section">
-            <h3>1. 等級 (Level)</h3>
+            <h3>1. 難度等級</h3>
             <button class="opt-btn active" onclick="setLv(1, this)">Lv.1 單圖</button>
             <button class="opt-btn" onclick="setLv(2, this)">Lv.2 左右 (空白)</button>
-            <button class="opt-btn" onclick="setLv(3, this)">Lv.3 左右 (圖案)</button>
-            <button class="opt-btn" onclick="setLv(4, this)">Lv.4 左右 (中西)</button>
+            <button class="opt-btn" onclick="setLv(3, this)">Lv.3 左右 (星星)</button>
+            <button class="opt-btn" onclick="setLv(4, this)">Lv.4 左右 (中西對比)</button>
         </div>
         <div class="setting-section">
-            <h3>2. 注視時間</h3>
-            <button class="opt-btn" onclick="setTime(300, this)">0.3s</button>
-            <button class="opt-btn active" onclick="setTime(1500, this)">1.5s</button>
-            <button class="opt-btn" onclick="setTime(2000, this)">2.0s</button>
+            <h3>2. 注視觸發時間</h3>
+            <button class="opt-btn" onclick="setTime(300, this)">0.3秒</button>
+            <button class="opt-btn active" onclick="setTime(1500, this)">1.5秒</button>
+            <button class="opt-btn" onclick="setTime(2500, this)">2.5秒</button>
         </div>
         <div class="setting-section">
-            <h3>3. 食物</h3>
-            <button class="opt-btn active" onclick="setType('chinese', this)">中式</button>
-            <button class="opt-btn" onclick="setType('western', this)">西式</button>
+            <h3>3. 食物類型</h3>
+            <button class="opt-btn active" onclick="setType('chinese', this)">中式食物</button>
+            <button class="opt-btn" onclick="setType('western', this)">西式食物</button>
         </div>
         <button class="start-btn" onclick="begin()">開始練習</button>
     </div>
 
     <script>
-        // 完全對應你 GitHub 截圖中的檔案名稱
+        // 對應 GitHub 檔案名稱
         const foodLib = {
             chinese: [
                 { name: '牛肉球', img: 'food1.png' }, { name: '腸粉', img: 'food2.png' },
@@ -116,10 +144,12 @@
             stage.innerHTML = '';
             const correctOnLeft = Math.random() < 0.5;
 
+            // 生成正確答案
             createCard(target, true, correctOnLeft ? 'left' : 'right');
 
-            if (cfg.lv === 2) createCard({name:'空白', img:''}, false, correctOnLeft ? 'right' : 'left', 'empty');
-            if (cfg.lv === 3) createCard({name:'星星', img:'https://cdn-icons-png.flaticon.com/128/1828/1828884.png'}, false, correctOnLeft ? 'right' : 'left');
+            // 生成干擾項
+            if (cfg.lv === 2) createCard({name:'空白', img:'none'}, false, correctOnLeft ? 'right' : 'left', 'empty');
+            if (cfg.lv === 3) createCard({name:'星星', img:'star'}, false, correctOnLeft ? 'right' : 'left', 'star');
             if (cfg.lv === 4) {
                 const otherType = cfg.type === 'chinese' ? 'western' : 'chinese';
                 const distractor = foodLib[otherType][Math.floor(Math.random()*4)];
@@ -127,31 +157,43 @@
             }
         }
 
-        function createCard(data, isCorrect, side, specialClass = '') {
+        function createCard(data, isCorrect, side, special) {
             const card = document.createElement('div');
-            card.className = `food-card ${specialClass}`;
-            const cardWidth = 380;
-            const stageWidth = window.innerWidth;
-            const stageHeight = window.innerHeight - 150;
+            card.className = 'food-card';
             
-            card.style.width = cardWidth + 'px';
-            card.style.top = (Math.random() * (stageHeight - 450) + 50) + 'px';
+            // 固定位置邏輯，確保左右平衡
+            const stageWidth = window.innerWidth;
+            const stageHeight = window.innerHeight - 120;
+            const cardWidth = 400;
+
+            // 垂直居中
+            card.style.top = (stageHeight/2 - 160) + 'px';
 
             if (cfg.lv === 1) {
                 card.style.left = (stageWidth/2 - cardWidth/2) + 'px';
             } else {
-                const colWidth = stageWidth / 2;
-                const randX = Math.random() * (colWidth - cardWidth - 100) + 50;
-                card.style.left = side === 'left' ? randX + 'px' : (colWidth + randX) + 'px';
+                const margin = (stageWidth/2 - cardWidth) / 2;
+                card.style.left = side === 'left' ? margin + 'px' : (stageWidth/2 + margin) + 'px';
             }
 
-            if (specialClass !== 'empty') {
+            // 內容填寫
+            if (special === 'empty') {
+                card.innerHTML = '<div class="special-icon">?</div>';
+                card.style.borderStyle = 'dashed';
+            } else if (special === 'star') {
+                card.innerHTML = '<div class="special-icon" style="color:#f1c40f">★</div>';
+            } else {
                 card.innerHTML = `<img src="${data.img}"><div class="progress-bar"></div>`;
             }
 
+            // 互動
             card.onpointerenter = () => {
                 if (isTransitioning) return;
-                if (!isCorrect) { speak("唔係呢個"); card.classList.add('wrong'); return; }
+                if (!isCorrect) {
+                    speak("唔係呢個喔");
+                    card.classList.add('wrong');
+                    return;
+                }
                 const bar = card.querySelector('.progress-bar');
                 if (bar) {
                     bar.style.transition = `width ${cfg.time}ms linear`;
@@ -160,17 +202,24 @@
                         isTransitioning = true;
                         speak(data.name + "，好叻喎！");
                         document.getElementById('cheer-sound').play();
-                        card.style.transform = "scale(1.2)";
-                        setTimeout(() => { currentIdx++; spawn(); }, 1500);
+                        card.classList.add('correct-feedback');
+                        
+                        // --- 核心修正：停留 3 秒後才到下一題 ---
+                        setTimeout(() => { 
+                            currentIdx++; 
+                            spawn(); 
+                        }, 3000); 
                     }, cfg.time);
                 }
             };
+
             card.onpointerleave = () => {
                 if (isTransitioning || !isCorrect) return;
                 clearTimeout(gazeTimer);
                 const bar = card.querySelector('.progress-bar');
                 if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
             };
+
             document.getElementById('game-stage').appendChild(card);
         }
     </script>
