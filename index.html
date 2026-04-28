@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yum Yum Food - 簡易版</title>
+    <style>
+        :root { --primary: #FF9500; --success: #28a745; --gaze: #ffeb3b; }
+        * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: "Microsoft JhengHei", sans-serif; }
+
+        /* 背景：增加深色遮罩及虛化，保護學生注意力 */
+        #bg-layer {
+            position: absolute; inset: 0; background-size: cover; background-position: center;
+            z-index: 1; 
+            filter: brightness(0.4) blur(2px); /* 讓背景暗一點、模糊一點，凸顯目標 */
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        /* 頂部超大提示 */
+        #task-hint {
+            position: absolute; top: 0; left: 0; width: 100%; height: 120px;
+            background: rgba(255,255,255,0.95); color: #000;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 3.5rem; font-weight: bold; z-index: 100; 
+            border-bottom: 8px solid var(--primary);
+        }
+
+        /* 食物容器：超粗明亮邊框 */
+        #target-container {
+            position: absolute; display: none; z-index: 50;
+            background: white; border-radius: 40px;
+            border: 15px solid var(--primary); padding: 20px;
+            box-shadow: 0 0 60px rgba(255,255,255,0.9);
+            transition: transform 0.3s ease;
+        }
+        #food-img { display: block; width: 100%; height: auto; border-radius: 20px; }
+
+        /* 注視進度條：超粗黃色條 */
+        .progress-bar {
+            position: absolute; bottom: -40px; left: 0; width: 0%; height: 25px;
+            background: var(--gaze); border-radius: 12px;
+            box-shadow: 0 0 15px var(--gaze);
+        }
+
+        /* 設定介面：全屏大按鈕 */
+        #settings-panel {
+            position: fixed; inset: 0; background: #fdf6e3; z-index: 1001; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .big-btn { 
+            width: 85%; padding: 45px; margin: 25px; font-size: 3rem; 
+            border-radius: 30px; border: 8px solid #fff; cursor: pointer; color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            font-weight: bold;
+        }
+        .desc { font-size: 1.5rem; color: #666; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <audio id="cheer-sound" src="cheer.mp3"></audio>
+    
+    <div id="task-hint">找出：<span id="target-name">---</span></div>
+    <div id="bg-layer"></div>
+
+    <div id="target-container">
+        <img id="food-img" src="">
+        <div class="progress-bar" id="gaze-bar"></div>
+    </div>
+
+    <div id="settings-panel">
+        <div class="desc">老師/家長請選擇主題：</div>
+        <button class="big-btn" style="background: #d35400;" onclick="startGame('chinese')">🍱 中式點心</button>
+        <button class="big-btn" style="background: #2980b9;" onclick="startGame('western')">🍔 西式快餐</button>
+    </div>
+
+    <script>
+        const config = {
+            'chinese': {
+                bg: 'chinese_bg.jpg', // 請準備一張酒樓背景圖
+                data: [
+                    { name: '牛肉球', img: 'food1.jpg' },
+                    { name: '腸粉', img: 'food2.jpg' },
+                    { name: '叉燒包', img: 'food3.jpg' },
+                    { name: '白粥', img: 'food4.jpg' }
+                ]
+            },
+            'western': {
+                bg: 'western_bg.jpg', // 請準備一張西餐廳背景圖
+                data: [
+                    { name: '薄餅', img: 'pizza.jpg' },
+                    { name: '漢堡包', img: '1food.jpg' },
+                    { name: '薯條', img: '2food.jpg' },
+                    { name: '可樂', img: 'cola.jpg' }
+                ]
+            }
+        };
+
+        let currentList = [];
+        let currentIndex = 0;
+        let gazeTimer = null;
+        const dwellTime = 1500; // 1.5秒注視
+
+        const bgLayer = document.getElementById('bg-layer');
+        const container = document.getElementById('target-container');
+        const img = document.getElementById('food-img');
+        const bar = document.getElementById('gaze-bar');
+        const nameText = document.getElementById('target-name');
+
+        function startGame(type) {
+            document.getElementById('settings-panel').style.display = 'none';
+            // 設定該模式的背景與食物清單
+            bgLayer.style.backgroundImage = `url(${config[type].bg})`;
+            currentList = [...config[type].data].sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            spawn();
+        }
+
+        function spawn() {
+            if (currentIndex >= currentList.length) {
+                // 完成後回到主選單
+                setTimeout(() => {
+                    document.getElementById('settings-panel').style.display = 'flex';
+                }, 1000);
+                return;
+            }
+
+            const item = currentList[currentIndex];
+            nameText.innerText = item.name;
+            img.src = item.img;
+            
+            container.style.display = 'none';
+            container.style.transform = "scale(1)";
+            bar.style.width = '0%';
+            bar.style.transition = 'none';
+
+            img.onload = () => {
+                const size = 400; // 針對ID學生，目標要夠大
+                container.style.width = size + 'px';
+                
+                // 避開頂部提示欄位 (120px)
+                const maxX = window.innerWidth - size - 60;
+                const maxY = window.innerHeight - size - 180;
+                container.style.left = (Math.random() * maxX + 30) + 'px';
+                container.style.top = (Math.random() * maxY + 140) + 'px';
+                container.style.display = 'block';
+            };
+        }
+
+        // 注視邏輯
+        container.onpointerenter = () => {
+            bar.style.transition = `width ${dwellTime}ms linear`;
+            bar.style.width = "100%";
+            gazeTimer = setTimeout(() => {
+                // 成功回饋
+                document.getElementById('cheer-sound').play();
+                container.style.transform = "scale(1.2)";
+                container.style.borderColor = "#28a745"; // 變綠色表示正確
+                
+                setTimeout(() => {
+                    container.style.borderColor = "var(--primary)";
+                    currentIndex++;
+                    spawn();
+                }, 1500); // 停留1.5秒給學生觀察成功後的樣子
+            }, dwellTime);
+        };
+
+        container.onpointerleave = () => {
+            clearTimeout(gazeTimer);
+            bar.style.transition = "none";
+            bar.style.width = "0%";
+        };
+    </script>
+</body>
+</html>
