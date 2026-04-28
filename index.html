@@ -3,51 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yum Yum Food - Pro</title>
+    <title>Yum Yum Food - V3</title>
     <style>
-        :root { --primary: #FF9500; --success: #28a745; --gaze: #ffeb3b; --wrong: #ff4444; }
+        :root { --primary: #FF9500; --success: #28a745; --gaze: #ffeb3b; --home: #007AFF; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
         
         /* 頂部提示 */
-        #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 100px; background: white; color: #000; display: flex; justify-content: center; align-items: center; font-size: 3rem; font-weight: bold; z-index: 100; border-bottom: 8px solid var(--primary); }
+        #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 120px; background: white; color: #000; display: flex; justify-content: center; align-items: center; font-size: 3.5rem; font-weight: bold; z-index: 100; border-bottom: 8px solid var(--primary); }
+
+        /* 返回主畫面按鈕 */
+        #home-btn { position: absolute; top: 20px; right: 20px; z-index: 200; background: var(--home); color: white; border: 4px solid white; border-radius: 15px; padding: 15px 25px; font-size: 1.5rem; font-weight: bold; cursor: pointer; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
         /* 遊戲區域 */
-        #game-stage { position: absolute; inset: 100px 0 0 0; z-index: 50; }
+        #game-stage { position: absolute; inset: 120px 0 0 0; z-index: 50; }
 
         /* 食物方塊 */
-        .food-card { position: absolute; background: white; border-radius: 30px; border: 12px solid var(--primary); padding: 15px; cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column; align-items: center; }
-        .food-card img { width: 100%; height: auto; border-radius: 15px; }
-        .food-card.wrong { border-color: #333; opacity: 0.7; }
-        .food-card.empty { background: #eee; border-style: dashed; }
+        .food-card { position: absolute; background: white; border-radius: 35px; border: 15px solid var(--primary); padding: 20px; cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .food-card img { width: 100%; height: auto; border-radius: 20px; display: block; }
+        .food-card.wrong { border-color: #333; opacity: 0.5; }
+        .food-card.empty { background: #ccc; border: 15px dashed #666; justify-content: center; height: 350px; }
+        .food-card.empty::after { content: '?'; font-size: 5rem; color: #666; font-weight: bold; }
 
-        /* 注視進度條 */
-        .progress-bar { position: absolute; bottom: -25px; left: 0; width: 0%; height: 15px; background: var(--gaze); border-radius: 10px; }
+        .progress-bar { position: absolute; bottom: -30px; left: 10px; right: 10px; width: 0%; height: 20px; background: var(--gaze); border-radius: 10px; box-shadow: 0 0 15px var(--gaze); }
 
         /* 設定頁面 */
         #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 1001; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .setting-section { width: 90%; background: white; padding: 15px; margin: 10px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h3 { margin: 5px 0; color: #d35400; }
-        .opt-btn { padding: 15px 25px; margin: 5px; border: 3px solid #ddd; border-radius: 15px; background: #fff; font-size: 1.2rem; cursor: pointer; }
+        .setting-section { width: 90%; background: white; padding: 20px; margin: 15px; border-radius: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h3 { margin: 0 0 10px 0; color: #d35400; font-size: 1.8rem; }
+        .opt-btn { padding: 18px 30px; margin: 8px; border: 4px solid #ddd; border-radius: 20px; background: #fff; font-size: 1.4rem; cursor: pointer; font-weight: bold; }
         .opt-btn.active { background: var(--primary); color: white; border-color: #fff; }
-        .start-btn { width: 90%; padding: 25px; background: var(--success); color: white; border: none; border-radius: 30px; font-size: 2.5rem; font-weight: bold; margin-top: 20px; }
+        .start-btn { width: 90%; padding: 30px; background: var(--success); color: white; border: none; border-radius: 40px; font-size: 3rem; font-weight: bold; margin: 30px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
     <audio id="cheer-sound" src="cheer.mp3"></audio>
-    <div id="task-hint">請找出：<span id="target-name">---</span></div>
+    <button id="home-btn" onclick="goHome()">返回設定</button>
+    <div id="task-hint">找出：<span id="target-name">---</span></div>
     <div id="game-stage"></div>
 
     <div id="settings-panel">
-        <h1>⚙️ 遊戲設定</h1>
+        <h1 style="font-size: 3.5rem; color: #333; margin: 20px 0;">Yum Yum Food ⚙️</h1>
         
         <div class="setting-section">
             <h3>1. 選擇等級 (Level)</h3>
             <button class="opt-btn active" onclick="setLv(1, this)">Lv.1 單一目標</button>
-            <button class="opt-btn" onclick="setLv(2, this)">Lv.2 二選一 (空白)</button>
-            <button class="opt-btn" onclick="setLv(3, this)">Lv.3 二選一 (隨機圖)</button>
-            <button class="opt-btn" onclick="setLv(4, this)">Lv.4 二選一 (中vs西)</button>
+            <button class="opt-btn" onclick="setLv(2, this)">Lv.2 左右選一 (空白格)</button>
+            <button class="opt-btn" onclick="setLv(3, this)">Lv.3 左右選一 (隨機圖)</button>
+            <button class="opt-btn" onclick="setLv(4, this)">Lv.4 左右選一 (中vs西)</button>
         </div>
 
         <div class="setting-section">
@@ -80,7 +84,7 @@
         };
 
         let cfg = { lv: 1, time: 1500, type: 'chinese' };
-        let currentIdx = 0, currentFoods = [], gazeTimer = null;
+        let currentIdx = 0, currentFoods = [], gazeTimer = null, isTransitioning = false;
 
         function setLv(v, b) { cfg.lv = v; updateUI(b); }
         function setTime(v, b) { cfg.time = v; updateUI(b); }
@@ -90,15 +94,24 @@
             btn.classList.add('active');
         }
 
-        // 語音功能
         function speak(text) {
+            window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-HK';
             window.speechSynthesis.speak(msg);
         }
 
+        function goHome() {
+            clearTimeout(gazeTimer);
+            document.getElementById('settings-panel').style.display = 'flex';
+            document.getElementById('home-btn').style.display = 'none';
+            document.getElementById('game-stage').innerHTML = '';
+            window.speechSynthesis.cancel();
+        }
+
         function begin() {
             document.getElementById('settings-panel').style.display = 'none';
+            document.getElementById('home-btn').style.display = 'block';
             currentFoods = [...foodLib[cfg.type]].sort(() => Math.random() - 0.5);
             currentIdx = 0;
             spawn();
@@ -106,59 +119,76 @@
 
         function spawn() {
             if (currentIdx >= currentFoods.length) {
-                document.getElementById('settings-panel').style.display = 'flex';
+                goHome();
                 return;
             }
-
+            isTransitioning = false;
             const target = currentFoods[currentIdx];
             document.getElementById('target-name').innerText = target.name;
             speak("請找出" + target.name);
 
             const stage = document.getElementById('game-stage');
             stage.innerHTML = '';
-            
-            // 生成正確目標
-            createCard(target, true);
+            const correctOnLeft = Math.random() < 0.5;
 
-            // 根據等級生成干擾項
-            if (cfg.lv === 2) createCard({name:'空白', img:''}, false, 'empty');
-            if (cfg.lv === 3) createCard({name:'星星', img:'https://cdn-icons-png.flaticon.com/128/1828/1828884.png'}, false);
+            createCard(target, true, correctOnLeft ? 'left' : 'right');
+
+            if (cfg.lv === 2) createCard({name:'空白', img:''}, false, correctOnLeft ? 'right' : 'left', 'empty');
+            if (cfg.lv === 3) createCard({name:'星星', img:'https://cdn-icons-png.flaticon.com/128/1828/1828884.png'}, false, correctOnLeft ? 'right' : 'left');
             if (cfg.lv === 4) {
                 const otherType = cfg.type === 'chinese' ? 'western' : 'chinese';
                 const distractor = foodLib[otherType][Math.floor(Math.random()*4)];
-                createCard(distractor, false);
+                createCard(distractor, false, correctOnLeft ? 'right' : 'left');
             }
         }
 
-        function createCard(data, isCorrect, specialClass = '') {
+        function createCard(data, isCorrect, side, specialClass = '') {
             const card = document.createElement('div');
             card.className = `food-card ${specialClass}`;
-            card.innerHTML = data.img ? `<img src="${data.img}"><div class="progress-bar"></div>` : `<div style="height:200px"></div>`;
-            card.style.width = '320px';
+            const cardWidth = 380;
+            const stageWidth = window.innerWidth;
+            const stageHeight = window.innerHeight - 120;
             
-            const maxX = window.innerWidth - 350;
-            const maxY = window.innerHeight - 450;
-            card.style.left = Math.random() * maxX + 'px';
-            card.style.top = Math.random() * maxY + 'px';
+            card.style.width = cardWidth + 'px';
+            const randY = Math.random() * (stageHeight - 500) + 50;
+            card.style.top = randY + 'px';
+
+            if (cfg.lv === 1) {
+                card.style.left = (Math.random() * (stageWidth - cardWidth - 100) + 50) + 'px';
+            } else {
+                const colWidth = stageWidth / 2;
+                const randX = Math.random() * (colWidth - cardWidth - 80) + 40;
+                card.style.left = side === 'left' ? randX + 'px' : (colWidth + randX) + 'px';
+            }
+
+            if (specialClass !== 'empty') {
+                card.innerHTML = `<img src="${data.img}"><div class="progress-bar"></div>`;
+            }
 
             card.onpointerenter = () => {
+                if (isTransitioning) return;
                 if (!isCorrect) {
                     speak("唔係呢個");
                     card.classList.add('wrong');
                     return;
                 }
                 const bar = card.querySelector('.progress-bar');
-                bar.style.transition = `width ${cfg.time}ms linear`;
-                bar.style.width = '100%';
-                gazeTimer = setTimeout(() => {
-                    speak(data.name + "，好叻喎！");
-                    document.getElementById('cheer-sound').play();
-                    card.style.transform = "scale(1.2)";
-                    setTimeout(() => { currentIdx++; spawn(); }, 1200);
-                }, cfg.time);
+                if (bar) {
+                    bar.style.transition = `width ${cfg.time}ms linear`;
+                    bar.style.width = '100%';
+                    gazeTimer = setTimeout(() => {
+                        isTransitioning = true;
+                        speak(data.name + "，好叻喎！");
+                        document.getElementById('cheer-sound').play();
+                        card.style.transform = "scale(1.2)";
+                        card.style.borderColor = "var(--success)";
+                        setTimeout(() => { currentIdx++; spawn(); }, 1500);
+                    }, cfg.time);
+                }
             };
 
             card.onpointerleave = () => {
+                if (isTransitioning || !isCorrect) return;
                 clearTimeout(gazeTimer);
                 const bar = card.querySelector('.progress-bar');
                 if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
