@@ -3,52 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yum Yum Food - V4</title>
+    <title>Yum Yum Food - V5 Ultimate</title>
     <style>
         :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: sans-serif; }
         
+        /* 頂部控制欄 */
         #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 100px; background: white; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; z-index: 100; border-bottom: 5px solid var(--primary); gap: 15px; }
-        .replay-btn { background: #eee; border: 3px solid #ccc; border-radius: 50%; width: 50px; height: 50px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .replay-btn { background: #eee; border: 3px solid #ccc; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         #home-btn { position: absolute; top: 15px; right: 15px; z-index: 200; background: var(--home); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-size: 1.2rem; cursor: pointer; display: none; }
         
-        #game-stage { position: absolute; inset: 100px 0 0 0; display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 50; transition: background 0.5s; gap: 30px; }
-
-        .food-card { 
-            position: relative; background: white; border-radius: 25px; border: 8px solid var(--primary); 
-            padding: 10px; cursor: pointer; width: 30%; max-width: 320px; height: 260px; 
-            transition: all 0.4s ease; display: flex; justify-content: center; align-items: center;
+        /* 遊戲舞台：強化左右分隔 */
+        #game-stage { 
+            position: absolute; inset: 100px 0 0 0; 
+            display: flex; justify-content: space-around; align-items: center; 
+            padding: 0 5%; z-index: 50; transition: background 0.5s; 
+            gap: 100px; 
         }
-        .food-card img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 
-        /* [修正1] 橫向比例放大置中，減少白邊 */
+        /* 原始圖片卡片：加大尺寸 */
+        .food-card { 
+            position: relative; background: white; border-radius: 30px; border: 10px solid var(--primary); 
+            padding: 15px; cursor: pointer; 
+            width: 42vw; height: 40vh; /* 加大尺寸 */
+            max-width: 480px; max-height: 380px; 
+            transition: all 0.4s ease; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .food-card img { width: 95%; height: 95%; object-fit: contain; pointer-events: none; }
+
+        /* [修正] 答對後橫向比例放大置中 */
         .focus-center { 
             position: fixed !important; top: 55% !important; left: 50% !important; 
-            transform: translate(-50%, -50%) scale(1); 
+            transform: translate(-50%, -50%); 
             z-index: 1000; border-color: var(--success); 
-            width: 70vw; height: 55vh; /* 橫向大比例 */
-            max-width: 800px; max-height: 500px;
-            box-shadow: 0 0 80px rgba(255,255,255,0.6);
+            width: 80vw; height: 60vh; 
+            max-width: 900px; max-height: 550px;
+            box-shadow: 0 0 100px rgba(255,255,255,0.7);
         }
-        .dimmed { background: rgba(0,0,0,0.9) !important; }
+        .dimmed { background: rgba(0,0,0,0.92) !important; }
 
-        .progress-bar { position: absolute; bottom: -15px; left: 0; width: 0%; height: 12px; background: #ffeb3b; border-radius: 6px; }
+        /* 配對模式專用樣式：讓圖片更大 */
+        .match-card { width: 45vw; height: 50vh; max-width: 550px; max-height: 450px; }
+        .match-target { border: 8px dashed #666; background: rgba(255,255,255,0.1); }
+
+        .progress-bar { position: absolute; bottom: -20px; left: 0; width: 0%; height: 15px; background: #ffeb3b; border-radius: 8px; }
 
         /* 設定面板 */
         #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 1001; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         .setting-section { width: 95%; max-width: 800px; background: white; padding: 15px; margin: 10px 0; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        
         .lv-item { display: flex; align-items: center; width: 100%; border-bottom: 1px solid #eee; padding: 10px 0; cursor: pointer; }
         .lv-item h4 { margin: 0 15px; color: #d35400; flex-grow: 1; font-size: 1.2rem; }
-        .lv-item p { margin: 0; color: #666; font-size: 1rem; width: 40%; text-align: right; }
-        .lv-btn { padding: 12px 20px; border: 2px solid #ddd; border-radius: 12px; background: #fff; font-size: 1rem; font-weight: bold; }
+        .lv-item p { margin: 0; color: #666; font-size: 0.95rem; width: 40%; text-align: right; }
+        .lv-btn { padding: 10px 18px; border: 2px solid #ddd; border-radius: 10px; background: #fff; font-size: 1rem; font-weight: bold; }
         .lv-item.active .lv-btn { background: var(--primary); color: white; border-color: #fff; }
-
-        #time-slider { width: 80%; height: 35px; margin: 15px 0; cursor: pointer; }
         .opt-btn { padding: 12px 20px; margin: 5px; border: 2px solid #ddd; border-radius: 12px; background: #fff; font-size: 1.1rem; cursor: pointer; font-weight: bold; }
         .opt-btn.active { background: var(--primary); color: white; }
-        .start-btn { width: 90%; max-width: 400px; padding: 20px; background: var(--success); color: white; border: none; border-radius: 40px; font-size: 2.2rem; font-weight: bold; margin: 20px 0; box-shadow: 0 8px 15px rgba(0,0,0,0.2); cursor: pointer; }
+        .start-btn { width: 90%; max-width: 400px; padding: 20px; background: var(--success); color: white; border: none; border-radius: 40px; font-size: 2.2rem; font-weight: bold; margin: 20px 0; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -62,58 +74,28 @@
     <div id="game-stage"></div>
 
     <div id="settings-panel">
-        <h1 style="color: #333; margin: 10px;">教育遊戲設定 ⚙️</h1>
-        
+        <h1 style="margin: 10px;">教育遊戲設定 ⚙️</h1>
         <div class="setting-section">
             <h3>1. 選擇等級與學習目標</h3>
-            
-            <div class="lv-item active" onclick="setLv(1, this)">
-                <button class="lv-btn">等級 1</button>
-                <h4>單一選項</h4>
-                <p>視覺聚焦練習</p>
-            </div>
-            
-            <div class="lv-item" onclick="setLv(2, this)">
-                <button class="lv-btn">等級 2</button>
-                <h4>二選一 (空白干擾)</h4>
-                <p>簡單視覺辨識</p>
-            </div>
-            
-            <div class="lv-item" onclick="setLv(3, this)">
-                <button class="lv-btn">等級 3</button>
-                <h4>二選一 (圖案干擾)</h4>
-                <p>分辨食物與雜物</p>
-            </div>
-            
-            <div class="lv-item" onclick="setLv(5, this)">
-                <button class="lv-btn">等級 5</button>
-                <h4>三選一 (混合干擾)</h4>
-                <p>複雜背景搜尋</p>
-            </div>
-            
-            <div class="lv-item" onclick="setLv(6, this)" style="background:#f0f7ff; border-radius: 10px;">
-                <button class="lv-btn">等級 6</button>
-                <h4>配對模式 (拖放)</h4>
-                <p>手眼協調練習</p>
-            </div>
+            <div class="lv-item active" onclick="setLv(1, this)"><button class="lv-btn">等級 1</button><h4>單一選項</h4><p>視覺聚焦練習</p></div>
+            <div class="lv-item" onclick="setLv(2, this)"><button class="lv-btn">等級 2</button><h4>二選一 (空白)</h4><p>簡單視覺辨識</p></div>
+            <div class="lv-item" onclick="setLv(3, this)"><button class="lv-btn">等級 3</button><h4>二選一 (圖案)</h4><p>分辨食物與雜物</p></div>
+            <div class="lv-item" onclick="setLv(5, this)"><button class="lv-btn">等級 5</button><h4>三選一 (混合)</h4><p>複雜背景搜尋</p></div>
+            <div class="lv-item" onclick="setLv(6, this)" style="background:#f0f7ff; border-radius: 10px;"><button class="lv-btn">等級 6</button><h4>配對模式 (拖放)</h4><p>手眼協調練習</p></div>
         </div>
-
         <div class="setting-section" style="text-align: center;">
             <h3>2. 注視觸發時間：<span id="time-val">1.0</span> 秒</h3>
-            <input type="range" id="time-slider" min="0.3" max="2.5" step="0.1" value="1.0" oninput="updateTime(this.value)">
+            <input type="range" id="time-slider" min="0.3" max="2.5" step="0.1" value="1.0" oninput="updateTime(this.value)" style="width:80%;">
         </div>
-
         <div class="setting-section" style="text-align: center;">
             <h3>3. 食物類型</h3>
             <button class="opt-btn active" onclick="setType('chinese', this)">中式點心</button>
             <button class="opt-btn" onclick="setType('western', this)">西式快餐</button>
         </div>
-
         <button class="start-btn" onclick="begin()">開始練習</button>
     </div>
 
     <script>
-        // 統一檔案名
         const foodLib = {
             chinese: [
                 { name: '牛肉球', img: 'food1.png' }, { name: '腸粉', img: 'food2.png' },
@@ -140,19 +122,15 @@
             item.classList.add('active');
         }
 
-        // [修正2] 補回 TTS 語音回饋
         function speak(text) {
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-HK';
-            msg.rate = 0.9;
+            msg.rate = 0.85;
             window.speechSynthesis.speak(msg);
         }
 
-        function speakTask() { 
-            const prefix = (cfg.lv === 6) ? "請配對" : "請找出";
-            speak(prefix + lastTarget); 
-        }
+        function speakTask() { speak((cfg.lv === 6 ? "請配對" : "請找出") + lastTarget); }
 
         function goHome() {
             clearTimeout(gazeTimer);
@@ -160,7 +138,6 @@
             document.getElementById('home-btn').style.display = 'none';
             document.getElementById('game-stage').innerHTML = '';
             document.getElementById('game-stage').classList.remove('dimmed');
-            isTransitioning = false;
         }
 
         function begin() {
@@ -172,15 +149,10 @@
         }
 
         function spawn() {
-            if (currentIdx >= currentFoods.length) { 
-                speak("練習完成，你好叻喎！");
-                setTimeout(goHome, 2000); 
-                return; 
-            }
+            if (currentIdx >= currentFoods.length) { speak("你好叻喎，練習完喇！"); setTimeout(goHome, 2500); return; }
             isTransitioning = false;
             const stage = document.getElementById('game-stage');
             stage.classList.remove('dimmed');
-            stage.style.gap = (cfg.lv === 6) ? '80px' : '30px';
             stage.innerHTML = '';
             
             const target = currentFoods[currentIdx];
@@ -196,7 +168,7 @@
                 if (cfg.lv === 2) items.push({name:'空白', img:'none'}); 
                 if (cfg.lv === 3) items.push({name:'星星', img:'star'});
                 if (cfg.lv === 5) {
-                    const others = cfg.type === 'chinese' ? foodLib.western : foodLib.chinese;
+                    const others = (cfg.type === 'chinese') ? foodLib.western : foodLib.chinese;
                     items.push(others[0]); items.push(others[1]);
                 }
                 items.sort(() => Math.random() - 0.5).forEach(data => createCard(data, data === target));
@@ -207,21 +179,17 @@
             const card = document.createElement('div');
             card.className = 'food-card';
             if (data.img === 'none') {
-                card.innerHTML = '<div style="font-size:5rem; color:#eee">?</div>';
+                card.innerHTML = '<div style="font-size:6rem; color:#eee">?</div>';
                 card.style.borderStyle = 'dashed';
             } else if (data.img === 'star') {
-                card.innerHTML = '<div style="font-size:6rem; color:#f1c40f">★</div>';
+                card.innerHTML = '<div style="font-size:7rem; color:#f1c40f">★</div>';
             } else {
                 card.innerHTML = `<img src="${data.img}"><div class="progress-bar"></div>`;
             }
 
             card.onpointerenter = () => {
                 if (isTransitioning) return;
-                if (!isCorrect) {
-                    speak("唔係呢個，再試下"); // [修正2] 錯誤語音
-                    card.style.borderColor = "#333";
-                    return;
-                }
+                if (!isCorrect) { speak("唔係呢個，再試下"); card.style.borderColor = "#333"; return; }
                 const bar = card.querySelector('.progress-bar');
                 if (bar) {
                     bar.style.transition = `width ${cfg.time}ms linear`;
@@ -231,7 +199,8 @@
                         document.getElementById('cheer-sound').play();
                         document.getElementById('game-stage').classList.add('dimmed');
                         card.classList.add('focus-center'); 
-                        speak(data.name + "，好叻喎！"); // [修正2] 正確語音
+                        speak(data.name + "，好叻喎！");
+                        // 答對後停留 3 秒
                         setTimeout(() => { currentIdx++; spawn(); }, 3000);
                     }, cfg.time);
                 }
@@ -245,14 +214,14 @@
 
         function initMatchMode(target) {
             const stage = document.getElementById('game-stage');
+            stage.style.gap = "120px";
+
             const targetBox = document.createElement('div');
-            targetBox.className = 'food-card';
-            targetBox.style.borderStyle = 'dashed';
-            targetBox.style.backgroundColor = 'rgba(255,255,255,0.1)';
-            targetBox.innerHTML = `<img src="${target.img}" style="opacity:0.2">`;
+            targetBox.className = 'food-card match-card match-target';
+            targetBox.innerHTML = `<img src="${target.img}" style="opacity:0.15">`;
             
             const dragCard = document.createElement('div');
-            dragCard.className = 'food-card';
+            dragCard.className = 'food-card match-card';
             dragCard.style.cursor = 'grab';
             dragCard.innerHTML = `<img src="${target.img}">`;
             
@@ -280,12 +249,14 @@
                 isDragging = false;
                 dragCard.style.transition = 'all 0.3s';
                 const boxRect = targetBox.getBoundingClientRect();
-                if (e.clientX > boxRect.left && e.clientX < boxRect.right) {
+                if (e.clientX > boxRect.left && e.clientX < boxRect.right && e.clientY > boxRect.top && e.clientY < boxRect.bottom) {
                     isTransitioning = true;
                     dragCard.style.left = boxRect.left + 'px';
                     dragCard.style.top = boxRect.top + 'px';
+                    dragCard.style.borderColor = var(--success);
                     document.getElementById('cheer-sound').play();
-                    speak("配對成功！" + target.name);
+                    speak("配對成功，好叻喎！");
+                    // 配對完成後停留 3 秒
                     setTimeout(() => { currentIdx++; spawn(); }, 3000);
                 } else {
                     dragCard.style.position = 'relative';
