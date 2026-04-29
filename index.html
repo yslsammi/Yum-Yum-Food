@@ -3,52 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>視覺認知訓練_極大化版</title>
+    <title>視覺認知訓練_左右分明版</title>
     <style>
-        :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; }
+        :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; --divider: #333; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: sans-serif; position: fixed; }
         
-        /* 標題欄：稍微縮減高度以留給圖片 */
-        #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 10vh; background: white; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; z-index: 100; border-bottom: 5px solid var(--primary); }
-        .replay-btn { margin-left: 20px; background: #eee; border: 3px solid #ccc; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; }
-        #home-btn { position: absolute; top: 10px; right: 15px; z-index: 500; background: var(--home); color: white; border: none; border-radius: 10px; padding: 8px 15px; font-size: 1.1rem; cursor: pointer; display: none; }
+        /* 標題欄 */
+        #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 12vh; background: white; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; z-index: 500; border-bottom: 6px solid var(--primary); }
+        .replay-btn { margin-left: 20px; background: #eee; border: 3px solid #ccc; border-radius: 50%; width: 65px; height: 65px; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; }
+        #home-btn { position: absolute; top: 15px; right: 20px; z-index: 600; background: var(--home); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-size: 1.2rem; cursor: pointer; display: none; }
         
-        /* 舞台區域：極大化佈局 */
-        #game-stage { position: absolute; top: 10vh; left: 0; width: 100%; height: 90vh; display: flex; justify-content: center; align-items: center; gap: 2vw; padding: 10px; z-index: 50; }
-
-        /* 卡片極大化：寬度從 40vw 增加到 48vw */
-        .food-card { 
-            position: relative; background: white; border-radius: 25px; border: 12px solid var(--primary); 
-            width: 48vw; height: 80vh; max-width: 600px; max-height: 550px;
-            display: flex; justify-content: center; align-items: center; overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.7); flex-shrink: 0; touch-action: none;
+        /* 中央分界線與背景分割 */
+        #game-stage { 
+            position: absolute; top: 12vh; left: 0; width: 100%; height: 88vh; 
+            display: flex; justify-content: center; align-items: center; 
+            z-index: 50; 
         }
-        /* 圖片強制填充卡片，減少留白 */
+        
+        /* 視覺分割：左、右區域背景稍微不同 */
+        .stage-half { 
+            width: 50%; height: 100%; display: flex; justify-content: center; align-items: center; 
+            position: relative;
+        }
+        .stage-left { background: #080808; }
+        .stage-right { background: #000; }
+
+        /* 中央虛線分欄 */
+        #center-divider {
+            position: absolute; left: 50%; top: 5%; height: 90%; width: 6px;
+            border-left: 6px dashed var(--divider);
+            transform: translateX(-50%);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* 卡片設計：極大化 */
+        .food-card { 
+            position: relative; background: white; border-radius: 30px; border: 15px solid var(--primary); 
+            width: 45vw; height: 75vh; max-width: 580px; max-height: 520px;
+            display: flex; justify-content: center; align-items: center; overflow: hidden;
+            box-shadow: 0 0 50px rgba(255,149,0,0.2); flex-shrink: 0; touch-action: none;
+        }
         .food-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* 成功後的置中放大效果 */
+        /* 成功放大效果 */
         .focus-center { 
             position: absolute !important; top: 50% !important; left: 50% !important; 
             transform: translate(-50%, -50%) scale(1.1) !important; 
             z-index: 2000 !important; border-color: var(--success) !important; 
-            width: 90vw !important; height: 85vh !important;
-            max-width: 1000px !important; max-height: 750px !important;
+            width: 85vw !important; height: 80vh !important;
+            max-width: 1000px !important; max-height: 700px !important;
+            box-shadow: 0 0 100px rgba(40,167,69,0.5) !important;
         }
-        .dimmed { background: rgba(0,0,0,0.95) !important; }
-        .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 20px; background: #ffeb3b; z-index: 10; }
+        .dimmed { background: rgba(0,0,0,0.96) !important; }
+        .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 25px; background: #ffeb3b; z-index: 10; }
 
         /* 設定面板 */
         #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 3000; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .setting-section { width: 95%; max-width: 850px; background: white; padding: 20px; margin: 10px 0; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .lv-item { display: flex; align-items: center; width: 100%; border-bottom: 1px solid #eee; padding: 15px 0; cursor: pointer; }
+        .setting-section { width: 95%; max-width: 850px; background: white; padding: 25px; margin: 15px 0; border-radius: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .lv-item { display: flex; align-items: center; width: 100%; border-bottom: 1px solid #eee; padding: 18px 0; cursor: pointer; }
         .lv-item.active { background: #fff9e6; }
-        .lv-btn { padding: 10px; border: 2px solid #ddd; border-radius: 10px; background: #fff; font-size: 1.1rem; font-weight: bold; min-width: 75px; margin-right: 20px; }
+        .lv-btn { padding: 12px; border: 2px solid #ddd; border-radius: 12px; background: #fff; font-size: 1.2rem; font-weight: bold; min-width: 80px; margin-right: 25px; }
         .lv-item.active .lv-btn { background: var(--primary); color: white; }
-        .type-btn { flex: 1; padding: 25px; font-size: 1.8rem; font-weight: bold; border-radius: 20px; border: 5px solid #ddd; background: white; margin: 0 10px; }
+        .type-btn { flex: 1; padding: 25px; font-size: 1.8rem; font-weight: bold; border-radius: 20px; border: 6px solid #ddd; background: white; margin: 0 10px; }
         .type-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .start-btn { width: 90%; max-width: 500px; padding: 30px; background: var(--success); color: white; border: none; border-radius: 60px; font-size: 2.5rem; font-weight: bold; margin: 40px 0; cursor: pointer; }
-        #time-slider { width: 85%; height: 50px; margin: 20px 0; }
+        .start-btn { width: 90%; max-width: 500px; padding: 30px; background: var(--success); color: white; border: none; border-radius: 60px; font-size: 2.8rem; font-weight: bold; margin: 40px 0; cursor: pointer; }
+        #time-slider { width: 90%; height: 50px; margin: 25px 0; }
     </style>
 </head>
 <body>
@@ -61,32 +82,35 @@
         <button class="replay-btn" onclick="speakTask()">🔊</button>
     </div>
 
-    <div id="game-stage"></div>
+    <div id="game-stage">
+        <div id="center-divider"></div>
+        <div id="area-left" class="stage-half stage-left"></div>
+        <div id="area-right" class="stage-half stage-right"></div>
+    </div>
 
     <div id="settings-panel">
-        <h1 style="font-size: 2.5rem; color: #333;">視覺認知訓練系統</h1>
+        <h1 style="font-size: 2.8rem; color: #333; margin-bottom: 10px;">視覺認知訓練系統</h1>
         
         <div class="setting-section">
-            <h3 style="font-size: 1.5rem;">1. 選擇類別</h3>
+            <h3>1. 選擇食物類別</h3>
             <div style="display:flex; width:100%;">
-                <button class="type-btn active" id="btn-chinese" onclick="setType('chinese')">🥡 中式點心</button>
-                <button class="type-btn" id="btn-western" onclick="setType('western')">🍔 西式快餐</button>
+                <button class="type-btn active" id="btn-chinese" onclick="setType('chinese')">🥡 中式食物</button>
+                <button class="type-btn" id="btn-western" onclick="setType('western')">🍔 西式食物</button>
             </div>
         </div>
 
         <div class="setting-section">
-            <h3 style="font-size: 1.5rem;">2. 選擇等級</h3>
-            <div class="lv-item active" onclick="setLv(1, this)"><button class="lv-btn">Lv.1</button><h4>單一選項 (視覺聚焦)</h4></div>
-            <div class="lv-item" onclick="setLv(2, this)"><button class="lv-btn">Lv.2</button><h4>二選一 (空白對比)</h4></div>
-            <div class="lv-item" onclick="setLv(3, this)"><button class="lv-btn">Lv.3</button><h4>二選一 (隨機雜物)</h4></div>
-            <div class="lv-item" onclick="setLv(4, this)"><button class="lv-btn">Lv.4</button><h4>二選一 (中西對比)</h4></div>
-            <div class="lv-item" onclick="setLv(5, this)" style="background:#f0f7ff;"><button class="lv-btn">Lv.5</button><h4>配對模式 (手眼協調)</h4></div>
+            <h3>2. 選擇訓練難度</h3>
+            <div class="lv-item active" onclick="setLv(1, this)"><button class="lv-btn">Lv.1</button><h4>單一選項聚焦</h4></div>
+            <div class="lv-item" onclick="setLv(2, this)"><button class="lv-btn">Lv.2</button><h4>二選一 (對比空白)</h4></div>
+            <div class="lv-item" onclick="setLv(3, this)"><button class="lv-btn">Lv.3</button><h4>二選一 (對比雜物)</h4></div>
+            <div class="lv-item" onclick="setLv(4, this)"><button class="lv-btn">Lv.4</button><h4>二選一 (中西辨識)</h4></div>
+            <div class="lv-item" onclick="setLv(5, this)" style="background:#f0f7ff;"><button class="lv-btn">Lv.5</button><h4>手眼配對練習</h4></div>
         </div>
 
         <div class="setting-section" style="text-align: center;">
-            <h3 style="font-size: 1.5rem;">3. 注視時間：<span id="time-val" style="color:var(--primary); font-size: 2rem;">1.0</span> 秒</h3>
+            <h3>3. 注視/掃描時間：<span id="time-val" style="color:var(--primary); font-size: 2.2rem;">1.0</span> 秒</h3>
             <input type="range" id="time-slider" min="0.3" max="2.5" step="0.1" value="1.0" oninput="updateTime(this.value)">
-            <p style="color: #666;">(鼠標移入圖片即開始計時)</p>
         </div>
 
         <button class="start-btn" onclick="begin()">開始訓練</button>
@@ -97,7 +121,6 @@
             chinese: [{name:'牛肉球', img:'food1.png'}, {name:'腸粉', img:'food2.png'}, {name:'叉燒包', img:'food3.png'}, {name:'白粥', img:'food4.png'}],
             western: [{name:'薄餅', img:'pizza.png'}, {name:'漢堡包', img:'1food.png'}, {name:'薯條', img:'2food.png'}, {name:'可樂', img:'cola.png'}]
         };
-
         const junkLib = [{n:'星', i:'★'}, {n:'圓', i:'●'}, {n:'三角', i:'▲'}, {n:'心', i:'♥'}];
         const junkColors = ['#f1c40f', '#e74c3c', '#9b59b6', '#3498db', '#2ecc71'];
 
@@ -109,13 +132,11 @@
             document.querySelectorAll('.lv-item').forEach(i => i.classList.remove('active'));
             b.classList.add('active');
         }
-
         function setType(t) {
             cfg.type = t;
             document.getElementById('btn-chinese').classList.toggle('active', t === 'chinese');
             document.getElementById('btn-western').classList.toggle('active', t === 'western');
         }
-
         function updateTime(v) { cfg.time = v * 1000; document.getElementById('time-val').innerText = v; }
 
         function speak(text) {
@@ -125,15 +146,16 @@
             msg.rate = 0.8;
             window.speechSynthesis.speak(msg);
         }
-
         function speakTask() { speak((cfg.lv === 5 ? "請配對" : "請找出") + lastTarget); }
 
         function goHome() {
             clearTimeout(gazeTimer);
             document.getElementById('settings-panel').style.display = 'flex';
             document.getElementById('home-btn').style.display = 'none';
-            document.getElementById('game-stage').innerHTML = '';
+            document.getElementById('area-left').innerHTML = '';
+            document.getElementById('area-right').innerHTML = '';
             document.getElementById('game-stage').classList.remove('dimmed');
+            document.getElementById('center-divider').style.display = 'block';
             isTransitioning = false;
         }
 
@@ -151,11 +173,16 @@
 
         function spawn() {
             if (currentIdx >= currentFoods.length) resetRound();
-            
             isTransitioning = false;
+            const leftArea = document.getElementById('area-left');
+            const rightArea = document.getElementById('area-right');
             const stage = document.getElementById('game-stage');
+            const divider = document.getElementById('center-divider');
+
             stage.classList.remove('dimmed');
-            stage.innerHTML = '';
+            leftArea.innerHTML = ''; rightArea.innerHTML = '';
+            divider.style.display = (cfg.lv === 1 || cfg.lv === 5) ? 'none' : 'block';
+
             const target = currentFoods[currentIdx];
             lastTarget = target.name;
             document.getElementById('target-name').innerText = target.name;
@@ -163,39 +190,45 @@
 
             if (cfg.lv === 5) {
                 initMatchMode(target);
+            } else if (cfg.lv === 1) {
+                createCard(target, true, leftArea, true); // Lv1 置中顯示
             } else {
-                let items = [target];
-                if (cfg.lv === 2) items.push({name:'空白', img:'none'});
+                let items = [{data: target, correct: true}];
+                if (cfg.lv === 2) items.push({data:{name:'空白', img:'none'}, correct: false});
                 if (cfg.lv === 3) {
                     const j = junkLib[Math.floor(Math.random()*junkLib.length)];
-                    items.push({name: j.n, img: 'junk', icon: j.i});
+                    items.push({data:{name: j.n, img: 'junk', icon: j.i}, correct: false});
                 }
                 if (cfg.lv === 4) {
                     const others = (cfg.type === 'chinese') ? foodLib.western : foodLib.chinese;
-                    items.push(others[Math.floor(Math.random()*others.length)]);
+                    items.push({data: others[Math.floor(Math.random()*others.length)], correct: false});
                 }
-                items.sort(() => Math.random() - 0.5).forEach(data => createCard(data, data === target));
+                
+                items.sort(() => Math.random() - 0.5);
+                createCard(items[0].data, items[0].correct, leftArea);
+                createCard(items[1].data, items[1].correct, rightArea);
             }
         }
 
-        function createCard(data, isCorrect) {
+        function createCard(data, isCorrect, container, isFullWidth = false) {
             const card = document.createElement('div');
             card.className = 'food-card';
-            
+            if (isFullWidth) card.style.width = '70vw';
+
             if (data.img === 'none') {
-                card.innerHTML = '<div style="font-size:10rem; color:#eee">?</div>';
+                card.innerHTML = '<div style="font-size:12rem; color:#222">?</div>';
                 card.style.borderStyle = 'dashed';
+                card.style.borderColor = '#333';
             } else if (data.img === 'junk') {
                 const color = junkColors[Math.floor(Math.random() * junkColors.length)];
-                card.innerHTML = `<div style="font-size:12rem; color:${color}">${data.icon}</div>`;
+                card.innerHTML = `<div style="font-size:15rem; color:${color}">${data.icon}</div>`;
             } else {
                 card.innerHTML = `<img src="${data.img}"><div class="progress-bar"></div>`;
             }
 
-            // 觸發機制：掃描即計時
             const startGaze = () => {
                 if (isTransitioning) return;
-                if (!isCorrect) { speak("唔係呢個，再試下"); return; }
+                if (!isCorrect) { speak("唔係呢個，睇清楚啲"); return; }
                 const bar = card.querySelector('.progress-bar');
                 if (bar) {
                     bar.style.transition = `width ${cfg.time}ms linear`;
@@ -205,7 +238,7 @@
                         document.getElementById('cheer-sound').play();
                         document.getElementById('game-stage').classList.add('dimmed');
                         card.classList.add('focus-center'); 
-                        speak(data.name + "，答啱喇，好叻喎！");
+                        speak(data.name + "，你好叻喎！");
                         setTimeout(() => { currentIdx++; spawn(); }, 3000);
                     }, cfg.time);
                 }
@@ -219,23 +252,26 @@
 
             card.onpointerenter = startGaze; 
             card.onpointerleave = cancelGaze;
-            document.getElementById('game-stage').appendChild(card);
+            container.appendChild(card);
         }
 
         function initMatchMode(target) {
-            const stage = document.getElementById('game-stage');
+            const leftArea = document.getElementById('area-left');
+            const rightArea = document.getElementById('area-right');
+            leftArea.style.width = "50%"; rightArea.style.width = "50%";
+
             const targetBox = document.createElement('div');
             targetBox.className = 'food-card';
             targetBox.style.borderStyle = 'dashed';
-            targetBox.innerHTML = `<img src="${target.img}" style="opacity:0.25;">`;
+            targetBox.innerHTML = `<img src="${target.img}" style="opacity:0.2;">`;
             
             const dragCard = document.createElement('div');
             dragCard.className = 'food-card';
             dragCard.innerHTML = `<img src="${target.img}">`;
             dragCard.style.zIndex = "100";
             
-            stage.appendChild(targetBox);
-            stage.appendChild(dragCard);
+            leftArea.appendChild(targetBox);
+            rightArea.appendChild(dragCard);
 
             let isDragging = false, startX, startY;
 
@@ -251,7 +287,7 @@
 
             dragCard.onpointermove = (e) => {
                 if (!isDragging) return;
-                const sRect = stage.getBoundingClientRect();
+                const sRect = document.getElementById('game-stage').getBoundingClientRect();
                 dragCard.style.position = 'absolute';
                 dragCard.style.left = (e.clientX - sRect.left - startX) + 'px';
                 dragCard.style.top = (e.clientY - sRect.top - startY) + 'px';
@@ -265,16 +301,15 @@
                 const boxRect = targetBox.getBoundingClientRect();
                 if (e.clientX > boxRect.left && e.clientX < boxRect.right && e.clientY > boxRect.top && e.clientY < boxRect.bottom) {
                     isTransitioning = true;
-                    const sRect = stage.getBoundingClientRect();
+                    const sRect = document.getElementById('game-stage').getBoundingClientRect();
                     dragCard.style.left = (boxRect.left - sRect.left) + 'px';
                     dragCard.style.top = (boxRect.top - sRect.top) + 'px';
                     document.getElementById('cheer-sound').play();
-                    speak("配對成功，你好叻！");
+                    speak("配對成功！");
                     setTimeout(() => { currentIdx++; spawn(); }, 3000);
                 } else {
                     dragCard.style.position = 'relative';
                     dragCard.style.left = '0'; dragCard.style.top = '0';
-                    speak("將圖片放進去");
                 }
             };
         }
