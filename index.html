@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>視覺認知訓練_V22</title>
+    <title>視覺認知訓練_V23</title>
     <style>
         :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; --line: #ffeb3b; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
@@ -11,11 +11,11 @@
         
         /* 標題與按鈕 */
         #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 12vh; background: #fff; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; z-index: 100; border-bottom: 8px solid var(--primary); }
-        .replay-btn { margin-left: 20px; background: #eee; border: 4px solid #ccc; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; }
-        #home-btn { position: absolute; top: 15px; right: 20px; z-index: 500; background: var(--home); color: white; border: none; border-radius: 10px; padding: 12px 20px; font-size: 1.2rem; }
+        .replay-btn { margin-left: 20px; background: #eee; border: 3px solid #ccc; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer; }
+        #home-btn { position: absolute; top: 15px; right: 20px; z-index: 500; background: var(--home); color: white; border: none; border-radius: 10px; padding: 12px 20px; font-size: 1.2rem; cursor: pointer; }
         
         /* 舞台區域 */
-        #game-stage { position: absolute; top: 12vh; left: 0; width: 100vw; height: 88vh; display: flex; z-index: 10; }
+        #game-stage { position: absolute; top: 12vh; left: 0; width: 100vw; height: 88vh; display: flex; z-index: 10; background: #000; }
         .stage-half { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; }
         
         /* 分隔線 */
@@ -27,34 +27,44 @@
             width: 45vw; height: 75vh; max-width: 650px; max-height: 520px;
             display: flex; justify-content: center; align-items: center; overflow: hidden;
             transition: transform 0.1s; 
+            z-index: 30;
         }
-        .food-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-        .food-card:active { transform: scale(0.95); opacity: 0.8; } /* 觸控回饋 */
+        .food-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; filter: brightness(100%); }
+        .food-card:active { transform: scale(0.95); opacity: 0.8; }
 
-        /* 成功畫面 */
-        .dim-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; }
+        /* 成功畫面層級獨立化 */
+        #dim-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 9000; display: none; }
+        
         .focus-center { 
             position: fixed !important; top: 50% !important; left: 50% !important; 
             transform: translate(-50%, -50%) scale(1.1) !important; 
-            z-index: 2100 !important; border-color: var(--success) !important; 
+            z-index: 9999 !important; /* 最高層級，擋在所有東西前面 */
+            border-color: var(--success) !important; 
             width: 85vw !important; height: 80vh !important;
+            box-shadow: 0 0 100px rgba(40,167,69,0.8) !important;
+            filter: brightness(100%) !important; /* 確保亮度 */
         }
-        .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 30px; background: #ffeb3b; z-index: 30; }
+        
+        /* 進度條必須比放大圖片更高 */
+        .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 35px; background: #ffeb3b; z-index: 10000; }
 
         /* 設定面板 */
         #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 3000; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
         .setting-section { width: 95%; max-width: 800px; background: white; padding: 25px; margin: 10px 0; border-radius: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .lv-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+        .lv-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
         .lv-item.active { background: #fff9e6; border-radius: 15px; border: 2px solid var(--primary); }
-        .type-btn { flex: 1; padding: 25px; font-size: 1.8rem; margin: 0 10px; border-radius: 20px; border: 5px solid #ddd; background: #fff; }
+        .type-btn { flex: 1; padding: 25px; font-size: 1.8rem; margin: 0 10px; border-radius: 20px; border: 5px solid #ddd; background: #fff; cursor: pointer; }
         .type-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .start-btn { width: 80%; padding: 30px; background: var(--success); color: #fff; border-radius: 50px; font-size: 2.5rem; font-weight: bold; margin-top: 30px; }
+        .start-btn { width: 80%; padding: 30px; background: var(--success); color: #fff; border-radius: 50px; font-size: 2.5rem; font-weight: bold; margin-top: 30px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <audio id="cheer-sound" src="cheer.mp3" preload="auto"></audio>
-    <div id="dim-layer" class="dim-layer"></div>
+    
+    <div id="dim-layer"></div>
+    <div id="success-container" style="display:none; position:fixed; z-index:9998; inset:0; pointer-events:none;"></div>
+
     <button id="home-btn" onclick="location.reload()" style="display:none;">🏠 返回</button>
     
     <div id="task-hint">找出：<span id="target-name" style="color:var(--primary); margin-left:15px;">---</span><button class="replay-btn" id="btn-voice">🔊</button></div>
@@ -66,7 +76,7 @@
     </div>
 
     <div id="settings-panel">
-        <h1>視覺認知訓練 V22</h1>
+        <h1>視覺認知訓練 V23</h1>
         <div class="setting-section">
             <h3>1. 選擇類別</h3>
             <div style="display:flex;">
@@ -105,7 +115,7 @@
         function speak(t) { window.speechSynthesis.cancel(); let m = new SpeechSynthesisUtterance(t); m.lang='zh-HK'; window.speechSynthesis.speak(m); }
         
         function begin() {
-            // iPad 重要：在此點擊事件中解鎖音頻
+            // 解鎖 iPad 音頻
             document.getElementById('cheer-sound').play().then(() => {
                 document.getElementById('cheer-sound').pause();
                 document.getElementById('cheer-sound').currentTime = 0;
@@ -113,10 +123,11 @@
             
             document.getElementById('settings-panel').style.display = 'none';
             document.getElementById('home-btn').style.display = 'block';
-            currentFoods = [...foodLib[cfg.type]].sort(() => Math.random() - 0.5);
-            currentIdx = 0;
+            resetRound();
             spawn();
         }
+
+        function resetRound() { currentFoods = [...foodLib[cfg.type]].sort(() => Math.random() - 0.5); currentIdx = 0; }
 
         function spawn() {
             if (currentIdx >= currentFoods.length) currentIdx = 0;
@@ -125,8 +136,9 @@
             const R = document.getElementById('right-zone');
             const div = document.getElementById('center-line');
             const dim = document.getElementById('dim-layer');
+            const suc = document.getElementById('success-container');
             
-            L.innerHTML = ''; R.innerHTML = ''; dim.style.display = 'none';
+            L.innerHTML = ''; R.innerHTML = ''; dim.style.display = 'none'; suc.innerHTML = ''; suc.style.display = 'none';
             
             const target = currentFoods[currentIdx];
             lastTarget = target.n;
@@ -161,9 +173,8 @@
 
             if(data.i === 'none') card.innerHTML = '<div style="font-size:8rem;color:#eee">?</div>';
             else if(data.i === 'junk') card.innerHTML = '<div style="font-size:10rem;color:yellow">★</div>';
-            else card.innerHTML = `<img src="${data.i}"><div class="progress-bar"></div>`;
+            else card.innerHTML = `<img src="${data.i}" style="filter: brightness(100%);"><div class="progress-bar"></div>`;
 
-            // iPad 雙重事件監聽
             const start = (e) => {
                 if (lock) return;
                 if (!isCorrect) { speak("唔係呢個"); return; }
@@ -174,8 +185,20 @@
                     timer = setTimeout(() => {
                         lock = true;
                         document.getElementById('cheer-sound').play();
+                        
+                        // 將卡片複製並移至最高層級容器
                         document.getElementById('dim-layer').style.display = 'block';
-                        card.classList.add('focus-center');
+                        const suc = document.getElementById('success-container');
+                        suc.style.display = 'block';
+                        
+                        // 移除原本的進度條以免干擾
+                        if(bar) bar.style.display = 'none';
+                        
+                        // 複製卡片到最高層級
+                        const clone = card.cloneNode(true);
+                        clone.classList.add('focus-center');
+                        suc.appendChild(clone);
+                        
                         speak(data.n + "，答啱喇！");
                         setTimeout(() => { currentIdx++; spawn(); }, 3000);
                     }, cfg.time);
@@ -183,11 +206,13 @@
             };
 
             const end = () => {
+                if (lock) return;
                 clearTimeout(timer);
                 const bar = card.querySelector('.progress-bar');
                 if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
             };
 
+            // iPad 雙重監聽
             card.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
             card.addEventListener('touchend', end);
             card.addEventListener('mousedown', start);
@@ -207,32 +232,48 @@
             let active = false, ox, oy;
             const move = (e) => {
                 if(!active) return;
-                let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                let cX = e.touches ? e.touches[0].clientX : e.clientX;
+                let cY = e.touches ? e.touches[0].clientY : e.clientY;
                 if(drag.parentNode !== S) S.appendChild(drag);
                 drag.style.position = 'absolute';
-                drag.style.left = (clientX - ox) + 'px'; drag.style.top = (clientY - oy - S.offsetTop) + 'px';
+                drag.style.left = (cX - ox) + 'px'; drag.style.top = (cY - oy - S.offsetTop) + 'px';
                 drag.style.zIndex = '3000';
             };
             const up = (e) => {
                 if(!active) return; active = false;
-                let ex = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-                let ey = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+                window.removeEventListener('touchmove', move);
+                window.removeEventListener('touchend', up);
+                let eX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+                let eY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
                 let r = box.getBoundingClientRect();
-                if(ex > r.left && ex < r.right && ey > r.top && ey < r.bottom) {
-                    lock = true; drag.style.left = r.left + 'px'; drag.style.top = (r.top - S.offsetTop) + 'px';
-                    document.getElementById('cheer-sound').play(); speak("好叻喎！");
+                if(eX > r.left && eX < r.right && eY > r.top && eY < r.bottom) {
+                    lock = true;
+                    // 配對成功也使用獨立層級顯示大圖
+                    document.getElementById('cheer-sound').play();
+                    
+                    document.getElementById('dim-layer').style.display = 'block';
+                    const suc = document.getElementById('success-container');
+                    suc.style.display = 'block';
+                    
+                    const clone = drag.cloneNode(true);
+                    clone.classList.add('focus-center');
+                    suc.appendChild(clone);
+                    drag.style.display = 'none'; // 隱藏原本的拖拽卡片
+                    
+                    speak("好叻喎！");
                     setTimeout(() => { currentIdx++; spawn(); }, 3000);
                 } else {
                     R.appendChild(drag); drag.style.position='relative'; drag.style.left='0'; drag.style.top='0';
                 }
             };
             drag.addEventListener('touchstart', (e)=>{
-                active=true; let t=e.touches[0]; ox=t.clientX-drag.offsetLeft; oy=t.clientY-drag.offsetTop;
+                active=true; let t=e.touches[0]; 
+                let rect = drag.getBoundingClientRect();
+                ox = t.clientX - rect.left; oy = t.clientY - rect.top;
                 drag.style.transition='none';
+                window.addEventListener('touchmove', move, {passive:false});
+                window.addEventListener('touchend', up);
             });
-            window.addEventListener('touchmove', move, {passive:false});
-            window.addEventListener('touchend', up);
         }
 
         document.getElementById('btn-voice').onclick = () => speak(lastTarget);
