@@ -6,14 +6,15 @@
     <title>視覺認知訓練_中西式食物</title>
     <style>
         :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; }
+        /* 強制全局禁用手勢干擾 */
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
-        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); font-family: sans-serif; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: sans-serif; position: fixed; }
         
         #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 12vh; background: white; display: flex; justify-content: center; align-items: center; font-size: 2.2rem; font-weight: bold; z-index: 100; border-bottom: 5px solid var(--primary); }
         .replay-btn { margin-left: 15px; background: #eee; border: 3px solid #ccc; border-radius: 50%; width: 60px; height: 60px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; }
         #home-btn { position: absolute; top: 15px; right: 15px; z-index: 200; background: var(--home); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-size: 1.2rem; display: none; }
         
-        #game-stage { position: absolute; top: 12vh; left: 0; width: 100%; height: 88vh; display: flex; justify-content: center; align-items: center; gap: 8vw; padding: 20px; z-index: 50; }
+        #game-stage { position: absolute; top: 12vh; left: 0; width: 100%; height: 88vh; display: flex; justify-content: center; align-items: center; gap: 8vw; padding: 20px; z-index: 50; touch-action: none; }
 
         .food-card { 
             position: relative; background: white; border-radius: 30px; border: 10px solid var(--primary); 
@@ -34,17 +35,16 @@
         .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 15px; background: #ffeb3b; z-index: 10; }
 
         /* 設定面板 */
-        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 3000; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .setting-section { width: 95%; max-width: 800px; background: white; padding: 20px; margin: 10px 0; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .lv-item { display: flex; align-items: center; width: 100%; border-bottom: 1px solid #eee; padding: 12px 0; cursor: pointer; }
+        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 3000; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; touch-action: pan-y; }
+        .setting-section { width: 95%; max-width: 800px; background: white; padding: 20px; margin: 10px 0; border-radius: 20px; }
+        .lv-item { display: flex; align-items: center; width: 100%; border-bottom: 1px solid #eee; padding: 12px 0; }
         .lv-item.active { background: #fff9e6; }
-        .lv-btn { padding: 10px 18px; border: 2px solid #ddd; border-radius: 10px; background: #fff; font-size: 1rem; font-weight: bold; min-width: 70px; margin-right: 15px; }
+        .lv-btn { padding: 10px; border: 2px solid #ddd; border-radius: 10px; background: #fff; font-size: 1rem; font-weight: bold; min-width: 70px; margin-right: 15px; }
         .lv-item.active .lv-btn { background: var(--primary); color: white; }
         .type-btn { flex: 1; padding: 20px; font-size: 1.5rem; font-weight: bold; border-radius: 15px; border: 4px solid #ddd; background: white; margin: 0 10px; }
         .type-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .start-btn { width: 90%; max-width: 450px; padding: 25px; background: var(--success); color: white; border: none; border-radius: 50px; font-size: 2.2rem; font-weight: bold; margin: 30px 0; }
-        
-        #time-slider { width: 85%; height: 40px; margin: 15px 0; }
+        #time-slider { width: 85%; height: 40px; margin: 15px 0; touch-action: pan-x; }
     </style>
 </head>
 <body>
@@ -133,7 +133,6 @@
             const stage = document.getElementById('game-stage');
             stage.classList.remove('dimmed');
             stage.innerHTML = '';
-            
             const target = currentFoods[currentIdx];
             lastTarget = target.name;
             document.getElementById('target-name').innerText = target.name;
@@ -205,6 +204,7 @@
             let isDragging = false, startX, startY;
 
             dragCard.onpointerdown = (e) => {
+                e.preventDefault(); // 阻止 iPad 預設行為
                 if (isTransitioning) return;
                 isDragging = true;
                 dragCard.setPointerCapture(e.pointerId);
@@ -216,7 +216,7 @@
 
             dragCard.onpointermove = (e) => {
                 if (!isDragging) return;
-                // 使用 transform 代替 top/left 解決 iPad 坐標偏移問題
+                e.preventDefault();
                 const stageRect = stage.getBoundingClientRect();
                 const x = e.clientX - stageRect.left - startX;
                 const y = e.clientY - stageRect.top - startY;
@@ -228,22 +228,19 @@
             dragCard.onpointerup = (e) => {
                 if (!isDragging) return;
                 isDragging = false;
+                dragCard.releasePointerCapture(e.pointerId);
                 dragCard.style.transition = 'all 0.3s';
                 
                 const boxRect = targetBox.getBoundingClientRect();
-                // 判斷手指放開的位置是否在目標框內
                 if (e.clientX > boxRect.left && e.clientX < boxRect.right && e.clientY > boxRect.top && e.clientY < boxRect.bottom) {
                     isTransitioning = true;
-                    // 自動吸附到目標框位置
                     const stageRect = stage.getBoundingClientRect();
                     dragCard.style.left = (boxRect.left - stageRect.left) + 'px';
                     dragCard.style.top = (boxRect.top - stageRect.top) + 'px';
-                    
                     document.getElementById('cheer-sound').play();
                     speak("配對成功！");
                     setTimeout(() => { currentIdx++; spawn(); }, 3000);
                 } else {
-                    // 回到原位
                     dragCard.style.position = 'relative';
                     dragCard.style.left = '0';
                     dragCard.style.top = '0';
