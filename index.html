@@ -3,272 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>視覺認知訓練_V21_iPad穩定版</title>
+    <title>視覺認知訓練_V22</title>
     <style>
         :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; --line: #ffeb3b; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: sans-serif; position: fixed; }
+        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); font-family: sans-serif; position: fixed; }
         
-        #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 12vh; background: #ffffff; display: flex; justify-content: center; align-items: center; font-size: 2.8rem; font-weight: bold; z-index: 1000; border-bottom: 8px solid var(--primary); color: #000; }
-        .replay-btn { margin-left: 20px; background: #f0f0f0; border: 4px solid #ccc; border-radius: 50%; width: 70px; height: 70px; font-size: 2rem; display: flex; align-items: center; justify-content: center; }
-        #home-btn { position: absolute; top: 15px; right: 20px; z-index: 1100; background: var(--home); color: white; border: none; border-radius: 12px; padding: 12px 24px; font-size: 1.3rem; font-weight: bold; }
+        /* 標題與按鈕 */
+        #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 12vh; background: #fff; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; z-index: 100; border-bottom: 8px solid var(--primary); }
+        .replay-btn { margin-left: 20px; background: #eee; border: 4px solid #ccc; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; }
+        #home-btn { position: absolute; top: 15px; right: 20px; z-index: 500; background: var(--home); color: white; border: none; border-radius: 10px; padding: 12px 20px; font-size: 1.2rem; }
         
-        #game-stage { position: absolute; top: 12vh; left: 0; width: 100%; height: 88vh; display: flex; align-items: center; justify-content: center; z-index: 50; overflow: hidden; }
-        .stage-half { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
+        /* 舞台區域 */
+        #game-stage { position: absolute; top: 12vh; left: 0; width: 100vw; height: 88vh; display: flex; z-index: 10; }
+        .stage-half { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; }
         
-        #center-divider { position: absolute; left: 50%; top: 0; height: 100%; width: 10px; background: var(--line); box-shadow: 0 0 15px var(--line); transform: translateX(-50%); z-index: 90; display: none; }
+        /* 分隔線 */
+        #center-line { position: absolute; left: 50%; top: 5%; height: 90%; width: 10px; background: var(--line); transform: translateX(-50%); z-index: 20; display: none; box-shadow: 0 0 15px var(--line); }
 
+        /* 卡片主體 */
         .food-card { 
             position: relative; background: #fff; border-radius: 40px; border: 18px solid var(--primary); 
             width: 45vw; height: 75vh; max-width: 650px; max-height: 520px;
             display: flex; justify-content: center; align-items: center; overflow: hidden;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5); flex-shrink: 0;
-            filter: brightness(100%) !important; /* 強制亮度 */
+            transition: transform 0.1s; 
         }
         .food-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        .food-card:active { transform: scale(0.95); opacity: 0.8; } /* 觸控回饋 */
 
+        /* 成功畫面 */
+        .dim-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; }
         .focus-center { 
             position: fixed !important; top: 50% !important; left: 50% !important; 
             transform: translate(-50%, -50%) scale(1.1) !important; 
-            z-index: 2500 !important; border-color: var(--success) !important; 
+            z-index: 2100 !important; border-color: var(--success) !important; 
             width: 85vw !important; height: 80vh !important;
-            max-width: 1000px !important; max-height: 750px !important;
-            box-shadow: 0 0 100px rgba(40,167,69,0.8) !important;
-            filter: brightness(105%) !important;
         }
-        
-        .dimmed-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; }
-        .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 35px; background: #ffeb3b; z-index: 2600; }
+        .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 30px; background: #ffeb3b; z-index: 30; }
 
-        /* 設定介面 */
-        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 3000; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .setting-section { width: 95%; max-width: 900px; background: white; padding: 30px; margin: 15px 0; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        .lv-item { display: flex; align-items: center; width: 100%; border-bottom: 2px solid #f0f0f0; padding: 25px 0; cursor: pointer; }
-        .lv-item.active { background: #fff9e6; border-radius: 15px; }
-        .lv-btn { padding: 15px; border: 3px solid #ddd; border-radius: 15px; background: #fff; font-size: 1.4rem; font-weight: bold; min-width: 90px; margin-right: 30px; }
-        .lv-item.active .lv-btn { background: var(--primary); color: white; border-color: var(--primary); }
-        .type-btn { flex: 1; padding: 30px; font-size: 2rem; font-weight: bold; border-radius: 25px; border: 6px solid #ddd; background: white; margin: 0 15px; }
-        .type-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .start-btn { width: 90%; max-width: 550px; padding: 35px; background: var(--success); color: white; border: none; border-radius: 70px; font-size: 3rem; font-weight: bold; margin: 50px 0; }
-        #time-slider { width: 95%; height: 70px; margin: 20px 0; }
+        /* 設定面板 */
+        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 3000; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+        .setting-section { width: 95%; max-width: 800px; background: white; padding: 25px; margin: 10px 0; border-radius: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .lv-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+        .lv-item.active { background: #fff9e6; border-radius: 15px; border: 2px solid var(--primary); }
+        .type-btn { flex: 1; padding: 25px; font-size: 1.8rem; margin: 0 10px; border-radius: 20px; border: 5px solid #ddd; background: #fff; }
+        .type-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .start-btn { width: 80%; padding: 30px; background: var(--success); color: #fff; border-radius: 50px; font-size: 2.5rem; font-weight: bold; margin-top: 30px; }
     </style>
 </head>
 <body>
 
-    <audio id="cheer-sound" src="cheer.mp3"></audio>
-    <div id="dimmed-overlay" class="dimmed-overlay"></div>
-    <button id="home-btn" onclick="goHome()" style="display:none;">🏠 返回</button>
+    <audio id="cheer-sound" src="cheer.mp3" preload="auto"></audio>
+    <div id="dim-layer" class="dim-layer"></div>
+    <button id="home-btn" onclick="location.reload()" style="display:none;">🏠 返回</button>
     
-    <div id="task-hint">
-        找出：<span id="target-name" style="color:var(--primary); margin-left:10px;">---</span>
-        <button class="replay-btn" onclick="speakTask()">🔊</button>
-    </div>
+    <div id="task-hint">找出：<span id="target-name" style="color:var(--primary); margin-left:15px;">---</span><button class="replay-btn" id="btn-voice">🔊</button></div>
 
     <div id="game-stage">
-        <div id="center-divider"></div>
-        <div id="area-left" class="stage-half"></div>
-        <div id="area-right" class="stage-half" style="display:none;"></div>
+        <div id="center-line"></div>
+        <div id="left-zone" class="stage-half"></div>
+        <div id="right-zone" class="stage-half"></div>
     </div>
 
     <div id="settings-panel">
-        <h1 style="font-size: 3rem; margin-bottom: 20px;">視覺認知訓練 V21</h1>
+        <h1>視覺認知訓練 V22</h1>
         <div class="setting-section">
-            <h2>1. 選擇類別</h2>
+            <h3>1. 選擇類別</h3>
             <div style="display:flex;">
-                <button class="type-btn active" id="btn-chinese" onclick="setType('chinese')">🥡 中式</button>
-                <button class="type-btn" id="btn-western" onclick="setType('western')">🍔 西式</button>
+                <button class="type-btn active" onclick="cfg.type='chinese'; updateUI();">中式</button>
+                <button class="type-btn" onclick="cfg.type='western'; updateUI();">西式</button>
             </div>
         </div>
         <div class="setting-section">
-            <h2>2. 選擇等級</h2>
-            <div class="lv-item active" onclick="setLv(1, this)"><button class="lv-btn">Lv.1</button><h3>單一極大化</h3></div>
-            <div class="lv-item" onclick="setLv(2, this)"><button class="lv-btn">Lv.2</button><h3>二選一 (空白)</h3></div>
-            <div class="lv-item" onclick="setLv(3, this)"><button class="lv-btn">Lv.3</button><h3>二選一 (雜物)</h3></div>
-            <div class="lv-item" onclick="setLv(4, this)"><button class="lv-btn">Lv.4</button><h3>二選一 (中西)</h3></div>
-            <div class="lv-item" onclick="setLv(5, this)"><button class="lv-btn">Lv.5</button><h3>拖拽配對</h3></div>
+            <h3>2. 選擇等級</h3>
+            <div class="lv-item active" onclick="cfg.lv=1; updateUI();">Lv.1 單一極大化</div>
+            <div class="lv-item" onclick="cfg.lv=2; updateUI();">Lv.2 二選一 (空白)</div>
+            <div class="lv-item" onclick="cfg.lv=3; updateUI();">Lv.3 二選一 (雜物)</div>
+            <div class="lv-item" onclick="cfg.lv=4; updateUI();">Lv.4 二選一 (中西)</div>
+            <div class="lv-item" onclick="cfg.lv=5; updateUI();">Lv.5 拖拽配對</div>
         </div>
-        <div class="setting-section" style="text-align: center;">
-            <h2>3. 計時：<span id="time-val">1.0</span> 秒</h2>
-            <input type="range" id="time-slider" min="0.3" max="2.5" step="0.1" value="1.0" oninput="updateTime(this.value)">
+        <div class="setting-section">
+            <h3>3. 計時：<span id="time-txt">1.0</span> 秒</h3>
+            <input type="range" id="time-range" min="0.3" max="2.5" step="0.1" value="1.0" style="width:100%; height:50px;" oninput="cfg.time=this.value*1000; document.getElementById('time-txt').innerText=this.value;">
         </div>
         <button class="start-btn" onclick="begin()">開始訓練</button>
     </div>
 
     <script>
         const foodLib = {
-            chinese: [{name:'牛肉球', img:'food1.png'}, {name:'腸粉', img:'food2.png'}, {name:'叉燒包', img:'food3.png'}, {name:'白粥', img:'food4.png'}],
-            western: [{name:'薄餅', img:'pizza.png'}, {name:'漢堡包', img:'1food.png'}, {name:'薯條', img:'2food.png'}, {name:'可樂', img:'cola.png'}]
+            chinese: [{n:'牛肉球', i:'food1.png'}, {n:'腸粉', i:'food2.png'}, {n:'叉燒包', i:'food3.png'}, {n:'白粥', i:'food4.png'}],
+            western: [{n:'薄餅', i:'pizza.png'}, {n:'漢堡包', i:'1food.png'}, {n:'薯條', i:'2food.png'}, {n:'可樂', i:'cola.png'}]
         };
-        const junkLib = [{n:'星', i:'★'}, {n:'圓', i:'●'}, {n:'三角', i:'▲'}, {n:'心', i:'♥'}];
-        
         let cfg = { lv: 1, time: 1000, type: 'chinese' };
-        let currentIdx = 0, currentFoods = [], gazeTimer = null, isTransitioning = false, lastTarget = "";
+        let currentIdx = 0, currentFoods = [], lastTarget = "", timer = null, lock = false;
 
-        function setLv(v, b) { cfg.lv = v; document.querySelectorAll('.lv-item').forEach(i => i.classList.remove('active')); b.classList.add('active'); }
-        function setType(t) { cfg.type = t; document.getElementById('btn-chinese').classList.toggle('active', t === 'chinese'); document.getElementById('btn-western').classList.toggle('active', t === 'western'); }
-        function updateTime(v) { cfg.time = v * 1000; document.getElementById('time-val').innerText = v; }
-
-        function speak(text) { window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(text); msg.lang = 'zh-HK'; msg.rate = 0.8; window.speechSynthesis.speak(msg); }
-        function speakTask() { speak((cfg.lv === 5 ? "請配對" : "請找出") + lastTarget); }
-
-        function goHome() {
-            clearTimeout(gazeTimer);
-            document.getElementById('settings-panel').style.display = 'flex';
-            document.getElementById('home-btn').style.display = 'none';
-            isTransitioning = false;
+        function updateUI() {
+            document.querySelectorAll('.type-btn').forEach((b,i) => b.className = (i===0 && cfg.type==='chinese') || (i===1 && cfg.type==='western') ? 'type-btn active' : 'type-btn');
+            document.querySelectorAll('.lv-item').forEach((b,i) => b.className = (i+1 === cfg.lv) ? 'lv-item active' : 'lv-item');
         }
 
+        function speak(t) { window.speechSynthesis.cancel(); let m = new SpeechSynthesisUtterance(t); m.lang='zh-HK'; window.speechSynthesis.speak(m); }
+        
         function begin() {
+            // iPad 重要：在此點擊事件中解鎖音頻
+            document.getElementById('cheer-sound').play().then(() => {
+                document.getElementById('cheer-sound').pause();
+                document.getElementById('cheer-sound').currentTime = 0;
+            }).catch(()=>{});
+            
             document.getElementById('settings-panel').style.display = 'none';
             document.getElementById('home-btn').style.display = 'block';
-            resetRound();
+            currentFoods = [...foodLib[cfg.type]].sort(() => Math.random() - 0.5);
+            currentIdx = 0;
             spawn();
         }
 
-        function resetRound() { currentFoods = [...foodLib[cfg.type]].sort(() => Math.random() - 0.5); currentIdx = 0; }
-
         function spawn() {
-            if (currentIdx >= currentFoods.length) resetRound();
-            isTransitioning = false;
-            const leftArea = document.getElementById('area-left');
-            const rightArea = document.getElementById('area-right');
-            const divider = document.getElementById('center-divider');
-            document.getElementById('dimmed-overlay').style.display = 'none';
-
-            leftArea.innerHTML = ''; rightArea.innerHTML = '';
+            if (currentIdx >= currentFoods.length) currentIdx = 0;
+            lock = false;
+            const L = document.getElementById('left-zone');
+            const R = document.getElementById('right-zone');
+            const div = document.getElementById('center-line');
+            const dim = document.getElementById('dim-layer');
+            
+            L.innerHTML = ''; R.innerHTML = ''; dim.style.display = 'none';
             
             const target = currentFoods[currentIdx];
-            lastTarget = target.name;
-            document.getElementById('target-name').innerText = target.name;
-            speakTask();
+            lastTarget = target.n;
+            document.getElementById('target-name').innerText = lastTarget;
+            speak((cfg.lv===5?"請配對":"請找出") + lastTarget);
 
             if (cfg.lv === 1) {
-                rightArea.style.display = 'none'; divider.style.display = 'none';
-                createCard(target, true, leftArea, true);
+                div.style.display = 'none'; R.style.display = 'none';
+                createCard(target, true, L, true);
             } else if (cfg.lv === 5) {
-                rightArea.style.display = 'flex'; divider.style.display = 'none';
-                initMatchMode(target);
+                div.style.display = 'none'; R.style.display = 'flex';
+                initMatch(target);
             } else {
-                rightArea.style.display = 'flex'; divider.style.display = 'block';
-                let items = [{d: target, c: true}];
-                if (cfg.lv === 2) items.push({d:{name:'空白', img:'none'}, c: false});
-                if (cfg.lv === 3) items.push({d:{name:'雜物', img:'junk', icon: junkLib[Math.floor(Math.random()*4)].i}, c: false});
-                if (cfg.lv === 4) {
-                    const others = (cfg.type === 'chinese') ? foodLib.western : foodLib.chinese;
-                    items.push({d: others[Math.floor(Math.random()*others.length)], c: false});
+                div.style.display = 'block'; R.style.display = 'flex';
+                let items = [{d:target, c:true}];
+                if(cfg.lv===2) items.push({d:{n:'空', i:'none'}, c:false});
+                if(cfg.lv===3) items.push({d:{n:'雜', i:'junk'}, c:false});
+                if(cfg.lv===4) {
+                    let o = cfg.type==='chinese'?foodLib.western:foodLib.chinese;
+                    items.push({d:o[Math.floor(Math.random()*4)], c:false});
                 }
-                items.sort(() => Math.random() - 0.5);
-                createCard(items[0].d, items[0].c, leftArea);
-                createCard(items[1].d, items[1].c, rightArea);
+                items.sort(()=>Math.random()-0.5);
+                createCard(items[0].d, items[0].c, L);
+                createCard(items[1].d, items[1].c, R);
             }
         }
 
-        function createCard(data, isCorrect, container, isFull = false) {
+        function createCard(data, isCorrect, container, isFull=false) {
             const card = document.createElement('div');
             card.className = 'food-card';
-            if (isFull) { card.style.width = '80vw'; card.style.maxWidth = '1000px'; }
+            if(isFull) card.style.width = '85vw';
 
-            if (data.img === 'none') {
-                card.innerHTML = `<div style="font-size:10rem; color:#222">?</div>`;
-            } else if (data.img === 'junk') {
-                card.innerHTML = `<div style="font-size:15rem; color:yellow">${data.icon}</div>`;
-            } else {
-                card.innerHTML = `<img src="${data.img}"><div class="progress-bar"></div>`;
-            }
+            if(data.i === 'none') card.innerHTML = '<div style="font-size:8rem;color:#eee">?</div>';
+            else if(data.i === 'junk') card.innerHTML = '<div style="font-size:10rem;color:yellow">★</div>';
+            else card.innerHTML = `<img src="${data.i}"><div class="progress-bar"></div>`;
 
-            // 使用 JavaScript 綁定事件而非 HTML 屬性
-            const onStart = (e) => {
-                if (isTransitioning) return;
-                if (!isCorrect) { speak("再試下"); return; }
+            // iPad 雙重事件監聽
+            const start = (e) => {
+                if (lock) return;
+                if (!isCorrect) { speak("唔係呢個"); return; }
                 const bar = card.querySelector('.progress-bar');
                 if (bar) {
                     bar.style.transition = `width ${cfg.time}ms linear`;
                     bar.style.width = '100%';
-                    gazeTimer = setTimeout(() => {
-                        isTransitioning = true;
+                    timer = setTimeout(() => {
+                        lock = true;
                         document.getElementById('cheer-sound').play();
-                        document.getElementById('dimmed-overlay').style.display = 'block';
+                        document.getElementById('dim-layer').style.display = 'block';
                         card.classList.add('focus-center');
-                        speak(data.name + "，好叻喎！");
+                        speak(data.n + "，答啱喇！");
                         setTimeout(() => { currentIdx++; spawn(); }, 3000);
                     }, cfg.time);
                 }
             };
 
-            const onEnd = () => {
-                clearTimeout(gazeTimer);
+            const end = () => {
+                clearTimeout(timer);
                 const bar = card.querySelector('.progress-bar');
                 if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
             };
 
-            card.addEventListener('pointerdown', onStart);
-            card.addEventListener('pointerup', onEnd);
-            card.addEventListener('pointerleave', onEnd);
-            // 兼容鼠標移入
-            card.addEventListener('pointerenter', (e) => { if(e.pointerType === 'mouse') onStart(e); });
+            card.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
+            card.addEventListener('touchend', end);
+            card.addEventListener('mousedown', start);
+            card.addEventListener('mouseup', end);
 
             container.appendChild(card);
         }
 
-        function initMatchMode(target) {
-            const leftArea = document.getElementById('area-left');
-            const rightArea = document.getElementById('area-right');
-            const stage = document.getElementById('game-stage');
+        function initMatch(target) {
+            const L = document.getElementById('left-zone'), R = document.getElementById('right-zone'), S = document.getElementById('game-stage');
+            const box = document.createElement('div'); box.className = 'food-card'; box.style.borderStyle = 'dashed';
+            box.innerHTML = `<img src="${target.i}" style="opacity:0.2">`;
+            const drag = document.createElement('div'); drag.className = 'food-card';
+            drag.innerHTML = `<img src="${target.i}">`;
+            L.appendChild(box); R.appendChild(drag);
 
-            const box = document.createElement('div');
-            box.className = 'food-card';
-            box.style.borderStyle = 'dashed';
-            box.innerHTML = `<img src="${target.img}" style="opacity:0.2;">`;
-            
-            const drag = document.createElement('div');
-            drag.className = 'food-card';
-            drag.innerHTML = `<img src="${target.img}">`;
-            
-            leftArea.appendChild(box);
-            rightArea.appendChild(drag);
-
-            let active = false, offsetX, offsetY;
-
-            drag.addEventListener('pointerdown', (e) => {
-                if (isTransitioning) return;
-                active = true;
-                drag.setPointerCapture(e.pointerId);
-                const rect = drag.getBoundingClientRect();
-                offsetX = e.clientX - rect.left;
-                offsetY = e.clientY - rect.top;
-                drag.style.transition = 'none';
-            });
-
-            drag.addEventListener('pointermove', (e) => {
-                if (!active) return;
-                if (drag.parentNode !== stage) stage.appendChild(drag);
-                const sRect = stage.getBoundingClientRect();
+            let active = false, ox, oy;
+            const move = (e) => {
+                if(!active) return;
+                let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                if(drag.parentNode !== S) S.appendChild(drag);
                 drag.style.position = 'absolute';
-                drag.style.left = (e.clientX - sRect.left - offsetX) + 'px';
-                drag.style.top = (e.clientY - sRect.top - offsetY) + 'px';
-                drag.style.zIndex = '2100';
-            });
-
-            drag.addEventListener('pointerup', (e) => {
-                if (!active) return;
-                active = false;
-                const bRect = box.getBoundingClientRect();
-                if (e.clientX > bRect.left && e.clientX < bRect.right && e.clientY > bRect.top && e.clientY < bRect.bottom) {
-                    isTransitioning = true;
-                    drag.style.transition = 'all 0.3s';
-                    const sRect = stage.getBoundingClientRect();
-                    drag.style.left = (bRect.left - sRect.left) + 'px';
-                    drag.style.top = (bRect.top - sRect.top) + 'px';
-                    document.getElementById('cheer-sound').play();
-                    speak("答啱喇！");
+                drag.style.left = (clientX - ox) + 'px'; drag.style.top = (clientY - oy - S.offsetTop) + 'px';
+                drag.style.zIndex = '3000';
+            };
+            const up = (e) => {
+                if(!active) return; active = false;
+                let ex = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+                let ey = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+                let r = box.getBoundingClientRect();
+                if(ex > r.left && ex < r.right && ey > r.top && ey < r.bottom) {
+                    lock = true; drag.style.left = r.left + 'px'; drag.style.top = (r.top - S.offsetTop) + 'px';
+                    document.getElementById('cheer-sound').play(); speak("好叻喎！");
                     setTimeout(() => { currentIdx++; spawn(); }, 3000);
                 } else {
-                    rightArea.appendChild(drag);
-                    drag.style.position = 'relative';
-                    drag.style.left = '0'; drag.style.top = '0';
+                    R.appendChild(drag); drag.style.position='relative'; drag.style.left='0'; drag.style.top='0';
                 }
+            };
+            drag.addEventListener('touchstart', (e)=>{
+                active=true; let t=e.touches[0]; ox=t.clientX-drag.offsetLeft; oy=t.clientY-drag.offsetTop;
+                drag.style.transition='none';
             });
+            window.addEventListener('touchmove', move, {passive:false});
+            window.addEventListener('touchend', up);
         }
+
+        document.getElementById('btn-voice').onclick = () => speak(lastTarget);
     </script>
 </body>
 </html>
