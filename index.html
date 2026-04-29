@@ -3,67 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>視覺認知訓練_V23</title>
+    <title>視覺認知訓練_V24_無限循環版</title>
     <style>
         :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; --line: #ffeb3b; }
         * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); font-family: sans-serif; position: fixed; }
         
-        /* 標題與按鈕 */
         #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 12vh; background: #fff; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; z-index: 100; border-bottom: 8px solid var(--primary); }
-        .replay-btn { margin-left: 20px; background: #eee; border: 3px solid #ccc; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer; }
-        #home-btn { position: absolute; top: 15px; right: 20px; z-index: 500; background: var(--home); color: white; border: none; border-radius: 10px; padding: 12px 20px; font-size: 1.2rem; cursor: pointer; }
+        .replay-btn { margin-left: 20px; background: #eee; border: 4px solid #ccc; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer; }
+        #home-btn { position: absolute; top: 15px; right: 20px; z-index: 500; background: var(--home); color: white; border: none; border-radius: 10px; padding: 12px 20px; font-size: 1.2rem; }
         
-        /* 舞台區域 */
         #game-stage { position: absolute; top: 12vh; left: 0; width: 100vw; height: 88vh; display: flex; z-index: 10; background: #000; }
-        .stage-half { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; }
-        
-        /* 分隔線 */
+        .stage-half { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
         #center-line { position: absolute; left: 50%; top: 5%; height: 90%; width: 10px; background: var(--line); transform: translateX(-50%); z-index: 20; display: none; box-shadow: 0 0 15px var(--line); }
 
-        /* 卡片主體 */
         .food-card { 
             position: relative; background: #fff; border-radius: 40px; border: 18px solid var(--primary); 
             width: 45vw; height: 75vh; max-width: 650px; max-height: 520px;
             display: flex; justify-content: center; align-items: center; overflow: hidden;
-            transition: transform 0.1s; 
             z-index: 30;
         }
-        .food-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; filter: brightness(100%); }
-        .food-card:active { transform: scale(0.95); opacity: 0.8; }
+        .food-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* 成功畫面層級獨立化 */
+        /* 最高亮度成功層 */
         #dim-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 9000; display: none; }
+        #success-container { position: fixed; inset: 0; z-index: 9999; display: none; justify-content: center; align-items: center; pointer-events: none; }
         
         .focus-center { 
-            position: fixed !important; top: 50% !important; left: 50% !important; 
-            transform: translate(-50%, -50%) scale(1.1) !important; 
-            z-index: 9999 !important; /* 最高層級，擋在所有東西前面 */
-            border-color: var(--success) !important; 
+            position: relative !important; transform: scale(1.1) !important; 
+            z-index: 9999 !important; border-color: var(--success) !important; 
             width: 85vw !important; height: 80vh !important;
             box-shadow: 0 0 100px rgba(40,167,69,0.8) !important;
-            filter: brightness(100%) !important; /* 確保亮度 */
+            filter: brightness(100%) !important;
         }
         
-        /* 進度條必須比放大圖片更高 */
-        .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 35px; background: #ffeb3b; z-index: 10000; }
+        .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 35px; background: #ffeb3b; z-index: 100; }
 
         /* 設定面板 */
         #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 3000; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
-        .setting-section { width: 95%; max-width: 800px; background: white; padding: 25px; margin: 10px 0; border-radius: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .setting-section { width: 95%; max-width: 800px; background: white; padding: 25px; margin: 10px 0; border-radius: 25px; }
         .lv-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
         .lv-item.active { background: #fff9e6; border-radius: 15px; border: 2px solid var(--primary); }
-        .type-btn { flex: 1; padding: 25px; font-size: 1.8rem; margin: 0 10px; border-radius: 20px; border: 5px solid #ddd; background: #fff; cursor: pointer; }
+        .type-btn { flex: 1; padding: 25px; font-size: 1.8rem; margin: 0 10px; border-radius: 20px; border: 5px solid #ddd; background: #fff; }
         .type-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .start-btn { width: 80%; padding: 30px; background: var(--success); color: #fff; border-radius: 50px; font-size: 2.5rem; font-weight: bold; margin-top: 30px; cursor: pointer; }
+        .start-btn { width: 80%; padding: 30px; background: var(--success); color: #fff; border-radius: 50px; font-size: 2.5rem; font-weight: bold; margin-top: 30px; }
     </style>
 </head>
 <body>
 
     <audio id="cheer-sound" src="cheer.mp3" preload="auto"></audio>
-    
     <div id="dim-layer"></div>
-    <div id="success-container" style="display:none; position:fixed; z-index:9998; inset:0; pointer-events:none;"></div>
+    <div id="success-container"></div>
 
     <button id="home-btn" onclick="location.reload()" style="display:none;">🏠 返回</button>
     
@@ -76,25 +66,27 @@
     </div>
 
     <div id="settings-panel">
-        <h1>視覺認知訓練 V23</h1>
+        <h1>視覺認知訓練 V24</h1>
         <div class="setting-section">
             <h3>1. 選擇類別</h3>
             <div style="display:flex;">
-                <button class="type-btn active" onclick="cfg.type='chinese'; updateUI();">中式</button>
-                <button class="type-btn" onclick="cfg.type='western'; updateUI();">西式</button>
+                <button class="type-btn active" id="type-cn" onclick="cfg.type='chinese'; updateUI();">中式</button>
+                <button class="type-btn" id="type-ws" onclick="cfg.type='western'; updateUI();">西式</button>
             </div>
         </div>
         <div class="setting-section">
             <h3>2. 選擇等級</h3>
-            <div class="lv-item active" onclick="cfg.lv=1; updateUI();">Lv.1 單一極大化</div>
-            <div class="lv-item" onclick="cfg.lv=2; updateUI();">Lv.2 二選一 (空白)</div>
-            <div class="lv-item" onclick="cfg.lv=3; updateUI();">Lv.3 二選一 (雜物)</div>
-            <div class="lv-item" onclick="cfg.lv=4; updateUI();">Lv.4 二選一 (中西)</div>
-            <div class="lv-item" onclick="cfg.lv=5; updateUI();">Lv.5 拖拽配對</div>
+            <div id="lv-list">
+                <div class="lv-item active" onclick="setLv(1)">Lv.1 單一極大化</div>
+                <div class="lv-item" onclick="setLv(2)">Lv.2 二選一 (空白)</div>
+                <div class="lv-item" onclick="setLv(3)">Lv.3 二選一 (雜物)</div>
+                <div class="lv-item" onclick="setLv(4)">Lv.4 二選一 (中西)</div>
+                <div class="lv-item" onclick="setLv(5)">Lv.5 拖拽配對</div>
+            </div>
         </div>
         <div class="setting-section">
             <h3>3. 計時：<span id="time-txt">1.0</span> 秒</h3>
-            <input type="range" id="time-range" min="0.3" max="2.5" step="0.1" value="1.0" style="width:100%; height:50px;" oninput="cfg.time=this.value*1000; document.getElementById('time-txt').innerText=this.value;">
+            <input type="range" id="time-range" min="0.3" max="2.5" step="0.1" value="1.0" style="width:100%; height:50px;" oninput="updateTimeUI(this.value)">
         </div>
         <button class="start-btn" onclick="begin()">開始訓練</button>
     </div>
@@ -107,30 +99,36 @@
         let cfg = { lv: 1, time: 1000, type: 'chinese' };
         let currentIdx = 0, currentFoods = [], lastTarget = "", timer = null, lock = false;
 
+        function setLv(l) { cfg.lv = l; updateUI(); }
+        function updateTimeUI(v) { cfg.time = v * 1000; document.getElementById('time-txt').innerText = v; }
+        
         function updateUI() {
-            document.querySelectorAll('.type-btn').forEach((b,i) => b.className = (i===0 && cfg.type==='chinese') || (i===1 && cfg.type==='western') ? 'type-btn active' : 'type-btn');
-            document.querySelectorAll('.lv-item').forEach((b,i) => b.className = (i+1 === cfg.lv) ? 'lv-item active' : 'lv-item');
+            document.getElementById('type-cn').className = cfg.type === 'chinese' ? 'type-btn active' : 'type-btn';
+            document.getElementById('type-ws').className = cfg.type === 'western' ? 'type-btn active' : 'type-btn';
+            const items = document.querySelectorAll('.lv-item');
+            items.forEach((item, idx) => { item.className = (idx + 1 === cfg.lv) ? 'lv-item active' : 'lv-item'; });
         }
 
         function speak(t) { window.speechSynthesis.cancel(); let m = new SpeechSynthesisUtterance(t); m.lang='zh-HK'; window.speechSynthesis.speak(m); }
         
         function begin() {
-            // 解鎖 iPad 音頻
-            document.getElementById('cheer-sound').play().then(() => {
-                document.getElementById('cheer-sound').pause();
-                document.getElementById('cheer-sound').currentTime = 0;
-            }).catch(()=>{});
-            
+            document.getElementById('cheer-sound').play().then(()=>document.getElementById('cheer-sound').pause()).catch(()=>{});
             document.getElementById('settings-panel').style.display = 'none';
             document.getElementById('home-btn').style.display = 'block';
             resetRound();
             spawn();
         }
 
-        function resetRound() { currentFoods = [...foodLib[cfg.type]].sort(() => Math.random() - 0.5); currentIdx = 0; }
+        //
+        function resetRound() { 
+            currentFoods = [...foodLib[cfg.type]].sort(() => Math.random() - 0.5); 
+            currentIdx = 0; 
+        }
 
         function spawn() {
-            if (currentIdx >= currentFoods.length) currentIdx = 0;
+            // 如果超過長度，自動洗牌循環
+            if (currentIdx >= currentFoods.length) resetRound();
+            
             lock = false;
             const L = document.getElementById('left-zone');
             const R = document.getElementById('right-zone');
@@ -173,50 +171,48 @@
 
             if(data.i === 'none') card.innerHTML = '<div style="font-size:8rem;color:#eee">?</div>';
             else if(data.i === 'junk') card.innerHTML = '<div style="font-size:10rem;color:yellow">★</div>';
-            else card.innerHTML = `<img src="${data.i}" style="filter: brightness(100%);"><div class="progress-bar"></div>`;
+            else card.innerHTML = `<img src="${data.i}"><div class="progress-bar"></div>`;
 
-            const start = (e) => {
+            //
+            const startAction = (e) => {
                 if (lock) return;
-                if (!isCorrect) { speak("唔係呢個"); return; }
+                if (!isCorrect) { 
+                    if(e.type === 'touchstart' || e.type === 'mousedown') speak("唔係呢個"); 
+                    return; 
+                }
                 const bar = card.querySelector('.progress-bar');
-                if (bar) {
+                if (bar && bar.style.width !== '100%') {
                     bar.style.transition = `width ${cfg.time}ms linear`;
                     bar.style.width = '100%';
                     timer = setTimeout(() => {
                         lock = true;
                         document.getElementById('cheer-sound').play();
-                        
-                        // 將卡片複製並移至最高層級容器
                         document.getElementById('dim-layer').style.display = 'block';
                         const suc = document.getElementById('success-container');
-                        suc.style.display = 'block';
-                        
-                        // 移除原本的進度條以免干擾
-                        if(bar) bar.style.display = 'none';
-                        
-                        // 複製卡片到最高層級
+                        suc.style.display = 'flex';
                         const clone = card.cloneNode(true);
                         clone.classList.add('focus-center');
                         suc.appendChild(clone);
-                        
                         speak(data.n + "，答啱喇！");
                         setTimeout(() => { currentIdx++; spawn(); }, 3000);
                     }, cfg.time);
                 }
             };
 
-            const end = () => {
+            const endAction = () => {
                 if (lock) return;
                 clearTimeout(timer);
                 const bar = card.querySelector('.progress-bar');
                 if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
             };
 
-            // iPad 雙重監聽
-            card.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
-            card.addEventListener('touchend', end);
-            card.addEventListener('mousedown', start);
-            card.addEventListener('mouseup', end);
+            // 監聽多種事件達成「掃描即觸發」
+            card.addEventListener('pointerenter', (e) => { if(e.pointerType === 'touch' || e.pointerType === 'mouse') startAction(e); });
+            card.addEventListener('touchstart', (e) => { e.preventDefault(); startAction(e); });
+            card.addEventListener('touchend', endAction);
+            card.addEventListener('pointerleave', endAction);
+            card.addEventListener('mousedown', startAction);
+            card.addEventListener('mouseup', endAction);
 
             container.appendChild(card);
         }
@@ -241,25 +237,19 @@
             };
             const up = (e) => {
                 if(!active) return; active = false;
-                window.removeEventListener('touchmove', move);
-                window.removeEventListener('touchend', up);
                 let eX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
                 let eY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
                 let r = box.getBoundingClientRect();
                 if(eX > r.left && eX < r.right && eY > r.top && eY < r.bottom) {
                     lock = true;
-                    // 配對成功也使用獨立層級顯示大圖
                     document.getElementById('cheer-sound').play();
-                    
                     document.getElementById('dim-layer').style.display = 'block';
                     const suc = document.getElementById('success-container');
-                    suc.style.display = 'block';
-                    
+                    suc.style.display = 'flex';
                     const clone = drag.cloneNode(true);
                     clone.classList.add('focus-center');
                     suc.appendChild(clone);
-                    drag.style.display = 'none'; // 隱藏原本的拖拽卡片
-                    
+                    drag.style.display = 'none';
                     speak("好叻喎！");
                     setTimeout(() => { currentIdx++; spawn(); }, 3000);
                 } else {
@@ -267,13 +257,12 @@
                 }
             };
             drag.addEventListener('touchstart', (e)=>{
-                active=true; let t=e.touches[0]; 
-                let rect = drag.getBoundingClientRect();
+                active=true; let t=e.touches[0]; let rect = drag.getBoundingClientRect();
                 ox = t.clientX - rect.left; oy = t.clientY - rect.top;
                 drag.style.transition='none';
-                window.addEventListener('touchmove', move, {passive:false});
-                window.addEventListener('touchend', up);
             });
+            window.addEventListener('touchmove', move, {passive:false});
+            window.addEventListener('touchend', up);
         }
 
         document.getElementById('btn-voice').onclick = () => speak(lastTarget);
