@@ -6,14 +6,18 @@
     <title>視覺認知訓練_V24_無限循環版</title>
     <style>
         :root { --primary: #FF9500; --success: #28a745; --home: #007AFF; --bg: #000; --line: #ffeb3b; }
-        * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; box-sizing: border-box; }
+        
+        /* 💡 修正：不要在這裡把全域的 touch-action 鎖死，改為在需要的地方才鎖 */
+        * { -webkit-touch-callout: none; -webkit-user-select: none; box-sizing: border-box; }
+        
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); font-family: sans-serif; position: fixed; }
         
         #task-hint { position: absolute; top: 0; left: 0; width: 100%; height: 12vh; background: #fff; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; z-index: 100; border-bottom: 8px solid var(--primary); }
         .replay-btn { margin-left: 20px; background: #eee; border: 4px solid #ccc; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer; }
-        #home-btn { position: absolute; top: 15px; right: 20px; z-index: 500; background: var(--home); color: white; border: none; border-radius: 10px; padding: 12px 20px; font-size: 1.2rem; }
+        #home-btn { position: absolute; top: 15px; right: 20px; z-index: 500; background: var(--home); color: white; border: none; border-radius: 10px; padding: 12px 20px; font-size: 1.2rem; cursor: pointer; }
         
-        #game-stage { position: absolute; top: 12vh; left: 0; width: 100vw; height: 88vh; display: flex; z-index: 10; background: #000; }
+        /* 💡 遊戲舞台在遊玩時禁止預設手勢 */
+        #game-stage { position: absolute; top: 12vh; left: 0; width: 100vw; height: 88vh; display: flex; z-index: 10; background: #000; touch-action: none; }
         .stage-half { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
         #center-line { position: absolute; left: 50%; top: 5%; height: 90%; width: 10px; background: var(--line); transform: translateX(-50%); z-index: 20; display: none; box-shadow: 0 0 15px var(--line); }
 
@@ -39,14 +43,22 @@
         
         .progress-bar { position: absolute; bottom: 0; left: 0; width: 0%; height: 35px; background: #ffeb3b; z-index: 100; }
 
-        /* 設定面板 */
-        #settings-panel { position: fixed; inset: 0; background: #fdf6e3; z-index: 3000; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+        /* 🔓 【關鍵修正】設定面板：允許在 iPad 上絲滑滾動，把 touch-action 設為 pan-y */
+        #settings-panel { 
+            position: fixed; inset: 0; background: #fdf6e3; z-index: 3000; padding: 20px; 
+            display: flex; flex-direction: column; align-items: center; 
+            overflow-y: scroll; 
+            -webkit-overflow-scrolling: touch; 
+            touch-action: pan-y; 
+        }
         .setting-section { width: 95%; max-width: 800px; background: white; padding: 25px; margin: 10px 0; border-radius: 25px; }
         .lv-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
         .lv-item.active { background: #fff9e6; border-radius: 15px; border: 2px solid var(--primary); }
-        .type-btn { flex: 1; padding: 25px; font-size: 1.8rem; margin: 0 10px; border-radius: 20px; border: 5px solid #ddd; background: #fff; }
+        .type-btn { flex: 1; padding: 25px; font-size: 1.8rem; margin: 0 10px; border-radius: 20px; border: 5px solid #ddd; background: #fff; cursor: pointer; }
         .type-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .start-btn { width: 80%; padding: 30px; background: var(--success); color: #fff; border-radius: 50px; font-size: 2.5rem; font-weight: bold; margin-top: 30px; }
+        
+        /* 為開始訓練大按鈕增加適當的底部邊距，確保不會被 iPad 底部黑條擋住 */
+        .start-btn { width: 80%; padding: 25px; background: var(--success); color: #fff; border-radius: 50px; font-size: 2.5rem; font-weight: bold; margin-top: 20px; margin-bottom: 50px; cursor: pointer; box-shadow: 0 8px 15px rgba(40,167,69,0.3); }
     </style>
 </head>
 <body>
@@ -66,7 +78,7 @@
     </div>
 
     <div id="settings-panel">
-        <h1>視覺認知訓練 V24</h1>
+        <h1 style="font-size: 2.5rem; margin: 10px 0;">視覺認知訓練 V24</h1>
         <div class="setting-section">
             <h3>1. 選擇類別</h3>
             <div style="display:flex;">
@@ -119,14 +131,12 @@
             spawn();
         }
 
-        //
         function resetRound() { 
             currentFoods = [...foodLib[cfg.type]].sort(() => Math.random() - 0.5); 
             currentIdx = 0; 
         }
 
         function spawn() {
-            // 如果超過長度，自動洗牌循環
             if (currentIdx >= currentFoods.length) resetRound();
             
             lock = false;
@@ -173,7 +183,6 @@
             else if(data.i === 'junk') card.innerHTML = '<div style="font-size:10rem;color:yellow">★</div>';
             else card.innerHTML = `<img src="${data.i}"><div class="progress-bar"></div>`;
 
-            //
             const startAction = (e) => {
                 if (lock) return;
                 if (!isCorrect) { 
@@ -206,7 +215,6 @@
                 if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
             };
 
-            // 監聽多種事件達成「掃描即觸發」
             card.addEventListener('pointerenter', (e) => { if(e.pointerType === 'touch' || e.pointerType === 'mouse') startAction(e); });
             card.addEventListener('touchstart', (e) => { e.preventDefault(); startAction(e); });
             card.addEventListener('touchend', endAction);
@@ -266,6 +274,17 @@
         }
 
         document.getElementById('btn-voice').onclick = () => speak(lastTarget);
+
+        // 💡 【關鍵修正：阻斷全局黑洞，保留設定面板滾動】
+        document.addEventListener('touchmove', function(e) {
+            const sp = document.getElementById('settings-panel');
+            // 如果是在設定面板內滑動，允許正常滾動
+            if (sp && sp.contains(e.target)) {
+                return; 
+            }
+            // 只有在非設定面板區域（如遊玩畫面外圍）才阻斷
+            if (e.cancelable) e.preventDefault();
+        }, { passive: false });
     </script>
 </body>
 </html>
